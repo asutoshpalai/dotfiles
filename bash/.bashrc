@@ -17,6 +17,8 @@ PS1='[\u@\h \W]\$ '
 alias ssh='ssh -o ServerAliveInterval=60'
 alias avenv='source venv/bin/activate'
 alias down='aria2c -x10 -s10 -j10 -c --file-allocation=none'
+alias bingo='fortune | $(echo -e "cowsay\ncowthink" | shuf -n1) -f $(for w in `cowsay -l` ; do echo $w ; done | sed '1,4d' | shuf -n1)'
+alias cdt='cd `mktemp -d`'
 export PATH=$HOME/xdman:$PATH
 
 gpp()
@@ -152,3 +154,9 @@ PERL_MM_OPT="INSTALL_BASE=~/perl5"; export PERL_MM_OPT;
 export PATH=$PATH:~/.composer/vendor/bin
 
 export PATH=$PATH:~/bin
+
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+
+[[ -s "$HOME/.rvm/scripts/rvm"  ]] && source "$HOME/.rvm/scripts/rvm"
+
+[ -s "$HOME/.scm_breeze/scm_breeze.sh" ] && source "$HOME/.scm_breeze/scm_breeze.sh"
