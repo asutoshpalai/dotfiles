@@ -407,9 +407,6 @@ au BufRead,BufNewFile *.s set filetype=gas
 
 map <C-n> :NERDTreeToggle<CR>
 
-autocmd StdinReadPre * let s:std_in=1
-autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
-
 let g:EditorConfig_core_mode = 'external_command'
 
 "highlight OverLength ctermbg=red ctermfg=white guibg=#592929
