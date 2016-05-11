@@ -413,3 +413,6 @@ let g:EditorConfig_core_mode = 'external_command'
 "match OverLength /\%81v.\+/
 
 autocmd Filetype gitcommit setlocal spell textwidth=72
+
+"Remove trailing whitespace
+autocmd FileType c,cpp,java,php,python,lisp autocmd BufWritePre <buffer> :%s/\s\+$//e

@@ -17,8 +17,12 @@ PS1='[\u@\h \W]\$ '
 alias ssh='ssh -o ServerAliveInterval=60'
 alias avenv='source venv/bin/activate'
 alias down='aria2c -x10 -s10 -j10 -c --file-allocation=none'
+<<<<<<< Updated upstream
 alias bingo='fortune | $(echo -e "cowsay\ncowthink" | shuf -n1) -f $(for w in `cowsay -l` ; do echo $w ; done | sed '1,4d' | shuf -n1)'
 alias cdt='cd `mktemp -d`'
+=======
+alias lexec='sbcl --quit --load '
+>>>>>>> Stashed changes
 export PATH=$HOME/xdman:$PATH
 
 gpp()
@@ -157,6 +161,6 @@ export PATH=$PATH:~/bin
 
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 
-[[ -s "$HOME/.rvm/scripts/rvm"  ]] && source "$HOME/.rvm/scripts/rvm"
+[[ -s "$HOME/.rvm/scripts/rvm"  ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 
 [ -s "$HOME/.scm_breeze/scm_breeze.sh" ] && source "$HOME/.scm_breeze/scm_breeze.sh"
