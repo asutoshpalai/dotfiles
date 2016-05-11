@@ -243,7 +243,7 @@ set viminfo^=%
 set laststatus=2
 
 " Format the status line
-set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ CWD:\ %r%{getcwd()}%h\ \ \ Line:\ %l
+set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ CWD:\ %r%{getcwd()}%h\ \ \ Line:\ %l[%P\]
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -411,3 +411,5 @@ let g:EditorConfig_core_mode = 'external_command'
 
 "highlight OverLength ctermbg=red ctermfg=white guibg=#592929
 "match OverLength /\%81v.\+/
+
+autocmd Filetype gitcommit setlocal spell textwidth=72
