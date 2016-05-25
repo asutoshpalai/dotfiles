@@ -27,7 +27,7 @@
 	url = https://github.com/Shirk/vim-gas
 [submodule "vim/.vim/bundle/vim-jst"]
 	path = vim/.vim/bundle/vim-jst
-	url = git://github.com:briancollins/vim-jst.git
+	url = git://github.com/briancollins/vim-jst.git
 [submodule "vim/.vim/bundle/editorconfig-vim"]
 	path = vim/.vim/bundle/editorconfig-vim
 	url = https://github.com/editorconfig/editorconfig-vim.git
@@ -51,4 +51,4 @@
 	url = git://github.com/tpope/vim-fugitive.git
 [submodule "vim/.vim/bundle/vim-ruby-heredoc-syntax"]
 	path = vim/.vim/bundle/vim-ruby-heredoc-syntax
-	url = git://github.com:joker1007/vim-ruby-heredoc-syntax.git
+	url = git://github.com/joker1007/vim-ruby-heredoc-syntax.git

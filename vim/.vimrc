@@ -414,5 +414,8 @@ let g:EditorConfig_core_mode = 'external_command'
 
 autocmd Filetype gitcommit setlocal spell textwidth=72
 
+"Add marker at 81st column
 "Remove trailing whitespace
-autocmd FileType c,cpp,java,php,python,lisp autocmd BufWritePre <buffer> :%s/\s\+$//e
+autocmd FileType c,cpp,ruby,java,php,python,lisp
+      \ setlocal colorcolumn=81 |
+      \ autocmd BufWritePre <buffer> :%s/\s\+$//e
