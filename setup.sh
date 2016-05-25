@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-cd
-ln -s  dotfiles/*/!(..|.) .
+shopt -s extglob
+ln -s $(dirname "$0")/*/!(..|.) ~/
