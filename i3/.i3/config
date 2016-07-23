@@ -17,7 +17,7 @@ set $mod Mod4
 
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
 # text rendering and scalability on retina/hidpi displays (thanks to pango).
-font pango:DejaVu Sans Mono 8
+font pango:DejaVu Sans Mono 9
 
 # Before i3 v4.8, we used to recommend this one as the default:
 # font -misc-fixed-medium-r-normal--13-120-75-75-C-70-iso10646-1
@@ -28,9 +28,6 @@ font pango:DejaVu Sans Mono 8
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
-
-# start a terminal
-bindsym $mod+Return exec i3-sensible-terminal
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -170,11 +167,16 @@ bindsym XF86AudioLowerVolume exec amixer set Master on 5%- #decrease sound volum
 bindsym XF86AudioMute exec amixer set Master toggle # mute sound
 
 # Sreen brightness controls
-bindsym XF86MonBrightnessUp exec xbacklight -inc 20 # increase screen brightness
-bindsym XF86MonBrightnessDown exec xbacklight -dec 20 # decrease screen brightness
+bindsym XF86MonBrightnessUp exec xbacklight -inc 10 # increase screen brightness
+bindsym XF86MonBrightnessDown exec xbacklight -dec 10 # decrease screen brightness
 
 # Print screen
 set $screenshot_file '~/Desktop/Screenshots/%Y-%m-%d_%H-%M-$wx$h.png'
 bindsym Print exec escrotum $screenshot_file
 bindsym Shift+Print exec escrotum --clipboard --select --selection-delay 300 $screenshot_file
 bindsym Ctrl+Print exec escrotum --select --selection-delay 300 $screenshot_file
+
+bindsym $mod+b exec firefox-developer
+
+# start a terminal
+bindsym $mod+Return exec ~/.i3/i3-shell.sh

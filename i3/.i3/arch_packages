@@ -11,3 +11,7 @@ polar-night-theme luv-icon-theme-git ttf-mac-fonts
 dmenu2
 leadpad
 escrotum-git
+xorg-utils
+xautolock
+gvfs-afc usbmuxd
+zathura zathura-pdf-mupdf zathura-djvu
