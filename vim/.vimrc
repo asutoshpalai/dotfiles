@@ -243,7 +243,7 @@ set viminfo^=%
 set laststatus=2
 
 " Format the status line
-set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ CWD:\ %r%{getcwd()}%h\ \ \ Line:\ %l[%P\]
+set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ CWD:\ %r%{getcwd()}%h\ \ \ Line:\ %l:%c[%P\]
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -417,5 +417,9 @@ autocmd Filetype gitcommit setlocal spell textwidth=72
 "Add marker at 81st column
 "Remove trailing whitespace
 autocmd FileType c,cpp,ruby,java,php,python,lisp
-      \ setlocal colorcolumn=81 |
+      \ setlocal colorcolumn=80 |
       \ autocmd BufWritePre <buffer> :%s/\s\+$//e
+
+let g:indent_guides_auto_colors = 0
+autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  guibg=blue   ctermbg=3
+autocmd VimEnter,Colorscheme * :hi IndentGuidesEven guibg=green ctermbg=4
