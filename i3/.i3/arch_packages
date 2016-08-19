@@ -15,3 +15,7 @@ xorg-utils
 xautolock
 gvfs-afc usbmuxd
 zathura zathura-pdf-mupdf zathura-djvu
+arandr
+baobab
+vlc qt4
+gsimplecal
