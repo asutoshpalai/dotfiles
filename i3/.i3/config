@@ -94,6 +94,12 @@ bindsym $mod+8 workspace 8
 bindsym $mod+9 workspace 9
 bindsym $mod+0 workspace 10
 
+# Cycling between the workspaces
+bindsym $mod+Tab workspace next
+bindsym $mod+Shift+Tab workspace prev
+
+bindsym $mod+p workspace back_and_forth
+
 # move focused container to workspace
 bindsym $mod+Shift+1 move container to workspace 1
 bindsym $mod+Shift+2 move container to workspace 2
@@ -154,6 +160,12 @@ bar {
         position top
         #status_command exec ~/.i3/net-speed
         status_command exec ~/.i3/i3status.lisp
+        tray_output LVDS
+        colors{
+          background #232323
+          statusline #DCDCDC
+
+        }
 }
 
 # start dmenu (a program launcher)
@@ -174,7 +186,7 @@ bindsym XF86MonBrightnessUp exec xbacklight -inc 10 # increase screen brightness
 bindsym XF86MonBrightnessDown exec xbacklight -dec 10 # decrease screen brightness
 
 # Print screen
-set $screenshot_file '~/Desktop/Screenshots/%Y-%m-%d_%H-%M-$wx$h.png'
+set $screenshot_file '~/Desktop/Screenshots/%Y-%m-%d_%H-%M-%S-$wx$h.png'
 bindsym Print exec escrotum $screenshot_file
 bindsym Shift+Print exec escrotum --select $screenshot_file
 bindsym Ctrl+Print exec escrotum  --clipboard $screenshot_file

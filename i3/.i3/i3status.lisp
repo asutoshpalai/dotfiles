@@ -13,27 +13,27 @@
 (defconstant *debug* t)
 
 (defconstant *log-file* (merge-pathnames
-			 ".i3/status-log"
-			 (user-homedir-pathname)))
+                         ".i3/status-log"
+                         (user-homedir-pathname)))
 
 (defun input-json (stream)
   (let ((str (read-line stream nil nil t)))
     (if (eq #\} (char str (1- (length str))))
-	str
-	(concatenate 'string str (input-json stream)))))
+        str
+        (concatenate 'string str (input-json stream)))))
 
 (defun handle-input (input)
   (let ((name (jsown:val (jsown:parse input) "name")))
     (cond ((equalp name "tztime")
-	   (external-program:start "/usr/bin/gsimplecal" nil)))))
+           (external-program:start "/usr/bin/gsimplecal" nil)))))
 
 (defun run ()
   (let ((json (input-json *standard-input*)))
     (if *debug*
-	(with-open-file (stream *log-file*
-			 :direction :output
-			 :if-exists :append)
-	  (format stream "~a~%" json)))
+        (with-open-file (stream *log-file*
+				:direction :output
+				:if-exists :append)
+          (format stream "~a~%" json)))
     (handle-input (string-trim ",[" json))))
 
 (external-program:start

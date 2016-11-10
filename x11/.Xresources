@@ -42,7 +42,7 @@ xterm*rightScrollBar:     true
 xterm*jumpScroll:         true
 xterm*multiScroll:        true
 
-URxvt.font: xft:Inconsolata:size=11:pixelsize=12,style=Light
+URxvt.font: xft:Inconsolata:size=12:pixelsize=14,style=Light
 URxvt.letterSpace: -1
 URxvt.scrollBar: false
 URxvt.iso14755: false
