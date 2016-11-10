@@ -111,5 +111,13 @@ i3status | (read line && echo "${line%\}}, \"click_events\": true}" && read line
 do
     read line
     update_rate
-    echo ",[{\"full_text\":\"${rate}\" },${line#,\[}" || exit 1
+    cpu_speed=$(cat /proc/cpuinfo | awk '/MHz/ {s += $4; n++} END {print s/n}')
+    if [ ${cpu_speed%.*} -lt 1200 ]; then
+      color="#00FF00";
+    elif [ ${cpu_speed%.*} -gt 2200 ]; then
+      color="#FF0000";
+    else
+      color="#FFFFFF";
+    fi
+    echo ",[{\"full_text\":\"${rate}\" }, {\"name\": \"cpu_speed\", \"full_text\":\"${cpu_speed} MHz\", \"color\": \"$color\"}, ${line#,\[}" || exit 1
 done)
