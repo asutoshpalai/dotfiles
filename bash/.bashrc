@@ -27,9 +27,15 @@ gpp()
   g++ -g $1 && ./a.out
 }
 
-up() {
-  printf "%0.s../" $(seq 1 $n)
+nvenv() {
+  virtualenv ~/.venvs/$1;
+  source ~/.venvs/$1/bin/activate
 }
+
+venv() {
+  source ~/.venvs/$1/bin/activate
+}
+
 
 export NVM_DIR="~/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -140,13 +146,6 @@ fi
 
 export GOPATH=~/go
 export PATH=$PATH:~/go/bin
-
-
-PATH="~/perl5/bin${PATH+:}${PATH}"; export PATH;
-PERL5LIB="~/perl5/lib/perl5${PERL5LIB+:}${PERL5LIB}"; export PERL5LIB;
-PERL_LOCAL_LIB_ROOT="~/perl5${PERL_LOCAL_LIB_ROOT+:}${PERL_LOCAL_LIB_ROOT}"; export PERL_LOCAL_LIB_ROOT;
-PERL_MB_OPT="--install_base \"/perl5\""; export PERL_MB_OPT;
-PERL_MM_OPT="INSTALL_BASE=~/perl5"; export PERL_MM_OPT;
 
 # composer global install modules
 export PATH=$PATH:~/.composer/vendor/bin
