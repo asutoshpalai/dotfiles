@@ -135,7 +135,7 @@ if has("gui_running")
 endif
 
 " Set utf8 as standard encoding and en_US as the standard language
-set encoding=utf8
+set encoding=utf-8
 
 " Use Unix as the standard file type
 set ffs=unix,dos,mac
@@ -420,6 +420,19 @@ autocmd FileType c,cpp,ruby,java,php,python,lisp
       \ setlocal colorcolumn=80 |
       \ autocmd BufWritePre <buffer> :%s/\s\+$//e
 
+autocmd FileType c,cpp
+      \ setlocal noexpandtab |
+      \ setlocal tabstop=4 |
+      \ setlocal shiftwidth=4
+
+"Transperent backgound
+hi Normal ctermbg=NONE
+
 let g:indent_guides_auto_colors = 0
 autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  guibg=blue   ctermbg=3
 autocmd VimEnter,Colorscheme * :hi IndentGuidesEven guibg=green ctermbg=4
+
+let g:airline_theme='dark'
+
+set list
+set listchars=tab:>-
