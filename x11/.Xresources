@@ -42,10 +42,13 @@ xterm*rightScrollBar:     true
 xterm*jumpScroll:         true
 xterm*multiScroll:        true
 
-URxvt.font: xft:Inconsolata:size=12:pixelsize=14,style=Light
+URxvt.font: xft:Inconsolata:pixelsize=14:antialias=true:hinting=true, style=Light
 URxvt.letterSpace: -1
 URxvt.scrollBar: false
 URxvt.iso14755: false
 URxvt.iso14755_52: false
 URxvt.transparent: true
 URxvt.shading: 15
+
+URxvt.resize-font.smaller: C-Down
+URxvt.resize-font.bigger: C-Up
