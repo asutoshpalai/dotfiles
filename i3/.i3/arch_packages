@@ -14,8 +14,9 @@ escrotum-git
 xorg-utils
 xautolock
 gvfs-afc usbmuxd
-zathura zathura-pdf-mupdf zathura-djvu
+zathura zathura-pdf-mupdf zathura-djvu zathura-ps
 arandr
 baobab
 vlc qt4
 gsimplecal
+weechat aspell
