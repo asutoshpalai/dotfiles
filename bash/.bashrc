@@ -19,6 +19,7 @@ alias avenv='source venv/bin/activate'
 alias down='aria2c -x10 -s10 -j10 -c --file-allocation=none'
 alias bingo='fortune | $(echo -e "cowsay\ncowthink" | shuf -n1) -f $(for w in `cowsay -l` ; do echo $w ; done | sed '1,4d' | shuf -n1)'
 alias cdt='cd `mktemp -d`'
+alias nhm='cdt; export HOME=`pwd`'
 alias lexec='sbcl --quit --load '   # before I met --script :P
 export PATH=$HOME/xdman:$PATH
 
@@ -32,13 +33,40 @@ nvenv() {
   source ~/.venvs/$1/bin/activate
 }
 
+nvenv2() {
+  virtualenv2 ~/.venvs/$1;
+  source ~/.venvs/$1/bin/activate
+}
+
 venv() {
   source ~/.venvs/$1/bin/activate
 }
 
 
-export NVM_DIR="~/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+#export NVM_DIR=~/.nvm
+#[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+
+# Lazy load nvm
+nvm() {
+    unset -f nvm
+    export NVM_DIR=~/.nvm
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+    nvm "$@"
+}
+
+node() {
+    unset -f node
+    export NVM_DIR=~/.nvm
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+    node "$@"
+}
+
+npm() {
+    unset -f npm
+    export NVM_DIR=~/.nvm
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+    npm "$@"
+}
 
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
@@ -148,7 +176,7 @@ export GOPATH=~/go
 export PATH=$PATH:~/go/bin
 
 # composer global install modules
-export PATH=$PATH:~/.composer/vendor/bin
+export PATH=$PATH:~/.config/composer/vendor/bin
 
 export PATH=$PATH:~/bin
 
@@ -158,3 +186,10 @@ export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 
 # Meet the sweet git helpers
 [ -s "$HOME/.scm_breeze/scm_breeze.sh" ] && source "$HOME/.scm_breeze/scm_breeze.sh"
+
+PATH="/home/comedian/perl5/bin${PATH:+:${PATH}}"; export PATH;
+PERL5LIB="/home/comedian/perl5/lib/perl5${PERL5LIB:+:${PERL5LIB}}"; export PERL5LIB;
+PERL_LOCAL_LIB_ROOT="/home/comedian/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOCAL_LIB_ROOT}}"; export PERL_LOCAL_LIB_ROOT;
+PERL_MB_OPT="--install_base \"/home/comedian/perl5\""; export PERL_MB_OPT;
+PERL_MM_OPT="INSTALL_BASE=/home/comedian/perl5"; export PERL_MM_OPT;
+
