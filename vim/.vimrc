@@ -425,6 +425,10 @@ autocmd FileType c,cpp
       \ setlocal tabstop=4 |
       \ setlocal shiftwidth=4
 
+autocmd FileType markdown
+      \ setlocal colorcolumn=80 |
+      \ setlocal textwidth=80
+
 "Transperent backgound
 hi Normal ctermbg=NONE
 
