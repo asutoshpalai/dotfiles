@@ -46,27 +46,25 @@ venv() {
 #export NVM_DIR=~/.nvm
 #[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
 
+##############################################
 # Lazy load nvm
-nvm() {
-    unset -f nvm
+##############################################
+
+declare -a NODE_GLOBALS=(`find ~/.nvm/versions/node -maxdepth 3 -type l -wholename '*/bin/*' | xargs -n1 basename | sort | uniq`)
+
+NODE_GLOBALS+=("node")
+NODE_GLOBALS+=("nvm")
+
+load_nvm () {
     export NVM_DIR=~/.nvm
-    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-    nvm "$@"
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 }
 
-node() {
-    unset -f node
-    export NVM_DIR=~/.nvm
-    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-    node "$@"
-}
+for cmd in "${NODE_GLOBALS[@]}"; do
+    eval "${cmd} () { unset -f ${NODE_GLOBALS[@]}; load_nvm; ${cmd} \$@; }"
+done
+##############################################
 
-npm() {
-    unset -f npm
-    export NVM_DIR=~/.nvm
-    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-    npm "$@"
-}
 
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
@@ -193,3 +191,4 @@ PERL_LOCAL_LIB_ROOT="/home/comedian/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOCAL_LI
 PERL_MB_OPT="--install_base \"/home/comedian/perl5\""; export PERL_MB_OPT;
 PERL_MM_OPT="INSTALL_BASE=/home/comedian/perl5"; export PERL_MM_OPT;
 
+export PATH="$HOME/.cargo/bin:$PATH"
