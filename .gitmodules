@@ -52,3 +52,12 @@
 [submodule "vim/.vim/bundle/vim-ruby-heredoc-syntax"]
 	path = vim/.vim/bundle/vim-ruby-heredoc-syntax
 	url = git://github.com/joker1007/vim-ruby-heredoc-syntax.git
+[submodule "vim/.vim/bundle/vim-textobj-user"]
+	path = vim/.vim/bundle/vim-textobj-user
+	url = https://github.com/kana/vim-textobj-user
+[submodule "vim/.vim/bundle/vim-textobj-rubyblock"]
+	path = vim/.vim/bundle/vim-textobj-rubyblock
+	url = https://github.com/nelstrom/vim-textobj-rubyblock
+[submodule "bash/.tmux/plugins/tpm"]
+	path = bash/.tmux/plugins/tpm
+	url = https://github.com/tmux-plugins/tpm
