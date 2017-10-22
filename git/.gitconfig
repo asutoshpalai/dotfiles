@@ -3,3 +3,4 @@
 	email = asupalai@gmail.com
 [core]
 	editor = vim
+	autocrlf = true

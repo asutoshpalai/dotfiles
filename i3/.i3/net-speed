@@ -36,7 +36,7 @@
 #ifaces="eth0"
 
 # Multiple interfaces
-ifaces="enp8s0 wlp9s0"
+ifaces="enp1s0 enp8s0 wlp2s0 wlp9s0"
 
 # Auto detect
 #ifaces=$(ls /sys/class/net | grep -E '^(eth|wlan)')
@@ -91,10 +91,12 @@ update_rate() {
         local tmp_rx
         local tmp_tx
         local stat="/sys/class/net/${iface}/statistics"
-        read tmp_rx < "${stat}/rx_bytes"
-        read tmp_tx < "${stat}/tx_bytes"
-        rx=$(( rx + tmp_rx ))
-        tx=$(( tx + tmp_tx ))
+        if [ -d "$stat" ]; then
+            read tmp_rx < "${stat}/rx_bytes"
+            read tmp_tx < "${stat}/tx_bytes"
+            rx=$(( rx + tmp_rx ))
+            tx=$(( tx + tmp_tx ))
+        fi
     done
     rate="$(readable $(( (rx - last_rx) / interval )))↓ $(readable $(( (tx - last_tx) / interval )))↑"
     last_rx=$rx
