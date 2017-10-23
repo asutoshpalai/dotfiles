@@ -192,3 +192,5 @@ PERL_MB_OPT="--install_base \"/home/comedian/perl5\""; export PERL_MB_OPT;
 PERL_MM_OPT="INSTALL_BASE=/home/comedian/perl5"; export PERL_MM_OPT;
 
 export PATH="$HOME/.cargo/bin:$PATH"
+
+[ -f ~/.fzf.bash  ] && source ~/.fzf.bash

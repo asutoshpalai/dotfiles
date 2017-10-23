@@ -1,28 +1,13 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Maintainer: 
+" This .vimrc was initially setup from:
 "       Amir Salihefendic
 "       http://amix.dk - amix@amix.dk
 "
-" Version: 
-"       5.0 - 29/05/12 15:43:36
-"
-" Blog_post: 
-"       http://amix.dk/blog/post/19691#The-ultimate-Vim-configuration-on-Github
-"
-" Awesome_version:
-"       Get this config, nice color schemes and lots of plugins!
-"
-"       Install the awesome version from:
-"
-"           https://github.com/amix/vimrc
-"
-" Syntax_highlighted:
-"       http://amix.dk/vim/vimrc.html
-"
-" Raw_version: 
-"       http://amix.dk/vim/vimrc.txt
+"       Version: 
+"             5.0 - 29/05/12 15:43:36
 "
 " Sections:
+"    -> Vundle setup
 "    -> General
 "    -> VIM user interface
 "    -> Colors and Fonts
@@ -38,6 +23,29 @@
 "    -> Helper functions
 "
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => vim-plug and plugin setup
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+call plug#begin()
+
+" Plugin outside ~/.vim/plugged with post-update hook
+Plug '~/.fzf'                         " The great fuzzer
+Plug 'junegunn/fzf.vim'               " fzf's helpers
+Plug 'w0rp/ale'                       " Linter
+Plug 'vim-airline/vim-airline'        " Status bar
+Plug 'vim-airline/vim-airline-themes' " Airline themes
+Plug 'jiangmiao/auto-pairs'           " Pairing of brackets
+Plug 'editorconfig/editorconfig-vim'  " Switch settings based on code bases
+Plug 'mattn/emmet-vim'                " The awesome html helpers
+Plug 'scrooloose/nerdcommenter'       " Helps in commenting codes
+Plug 'airblade/vim-gitgutter'         " Marks the changed lines
+Plug 'tpope/vim-fugitive'             " Awesome git plugin
+Plug 'tpope/vim-surround'             " Changing the surrouding brackets/quotes
+Plug 'godlygeek/tabular'              " Fixing tabluar indentation
+Plug 'sheerun/vim-polyglot'           " Syntax plugin for a 100+ languages
+
+call plug#end()
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -396,16 +404,13 @@ endfunction
 
 "My code starts from here
 set mouse=a 
-execute pathogen#infect()
-:set number
+set number
 
 nnoremap <silent><C-j> :set paste<CR>m`o<Esc>``:set nopaste<CR>
 nnoremap <silent><C-k> :set paste<CR>m`O<Esc>``:set nopaste<CR>
 
 au BufRead,BufNewFile *.asm set filetype=nasm
 au BufRead,BufNewFile *.s set filetype=gas
-
-map <C-n> :NERDTreeToggle<CR>
 
 let g:EditorConfig_core_mode = 'external_command'
 
@@ -432,11 +437,11 @@ autocmd FileType markdown
 "Transperent backgound
 hi Normal ctermbg=NONE
 
-let g:indent_guides_auto_colors = 0
-autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  guibg=blue   ctermbg=3
-autocmd VimEnter,Colorscheme * :hi IndentGuidesEven guibg=green ctermbg=4
-
+let g:airline_powerline_fonts = 1
 let g:airline_theme='dark'
+let g:airline#extensions#tabline#enabled = 1
 
 set list
 set listchars=tab:>-
+
+map <C-p> :Files<CR>
