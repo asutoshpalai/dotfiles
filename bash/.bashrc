@@ -21,6 +21,7 @@ alias bingo='fortune | $(echo -e "cowsay\ncowthink" | shuf -n1) -f $(for w in `c
 alias cdt='cd `mktemp -d`'
 alias nhm='cdt; export HOME=`pwd`'
 alias lexec='sbcl --quit --load '   # before I met --script :P
+alias plfx='peerflix -f "$(pwd)" -k'
 export PATH=$HOME/xdman:$PATH
 
 gpp()
@@ -196,3 +197,11 @@ PERL_MM_OPT="INSTALL_BASE=/home/comedian/perl5"; export PERL_MM_OPT;
 export PATH="$HOME/.cargo/bin:$PATH"
 
 [ -f ~/.fzf.bash  ] && source ~/.fzf.bash
+
+
+if [ -x ~/.vim/plugged/fzf.vim/bin/preview.rb  ]; then
+  export FZF_CTRL_T_OPTS="--preview '~/.vim/plugged/fzf.vim/bin/preview.rb {} | head -200'"
+fi
+
+export FZF_CTRL_R_OPTS="--preview 'echo {}' --preview-window down:3:hidden:wrap --bind '?:toggle-preview' --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort' --header 'Press CTRL-Y to copy command into clipboard' --border"
+

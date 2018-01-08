@@ -441,7 +441,14 @@ let g:airline_powerline_fonts = 1
 let g:airline_theme='dark'
 let g:airline#extensions#tabline#enabled = 1
 
-set list
-set listchars=tab:>-
+"set list
+"set listchars=tab:>-
 
 map <C-p> :Files<CR>
+
+
+" Likewise, Files command with preview window
+command! -bang -nargs=? -complete=dir Files
+  \ call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
+
+let g:ale_lint_delay = 10000
