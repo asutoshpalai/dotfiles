@@ -1,24 +1,32 @@
 ! terminal colors ------------------------------------------------------------
-! Tango colorscheme
-*foreground: white
-*background: black
 
+! tangoesque scheme
+*background: #111111
+*foreground: #babdb6
+! Black  + DarkGrey
 *color0:  #2E3436
-*color1:  #a40000
-*color2:  #4E9A06
-*color3:  #C4A000
-*color4:  #3465A4
-*color5:  #75507B
-*color6:  #ce5c00
-*color7:  #babdb9
 *color8:  #555753
-*color9:  #EF2929
-*color10: #8AE234
-*color11: #FCE94F
-*color12: #729FCF
-*color13: #AD7FA8
-*color14: #fcaf3e
-*color15: #EEEEEC
+! DarkRed + Red
+*color1:  #ff6565
+*color9:  #ff8d8d
+! DarkGreen + Green
+*color2:  #93d44f
+*color10: #c8e7a8
+! DarkYellow + Yellow
+*color3:  #eab93d
+*color11: #ffc123
+! DarkBlue + Blue
+*color4:  #204a87
+*color12: #3465a4
+! DarkMagenta + Magenta
+*color5:  #ce5c00
+*color13: #f57900
+!DarkCyan + Cyan (both not tango)
+*color6:  #89b6e2
+*color14: #46a4ff
+! LightGrey + White
+*color7:  #cccccc
+*color15: #ffffff
 
 xterm*dynamicColors:      true
 xterm*utf8:               2
@@ -36,9 +44,13 @@ URxvt.font: xft:Inconsolata:size=10,xft:Inconsolata\ for\ Powerline:size=10
 URxvt.scrollBar: false
 URxvt.iso14755: false
 URxvt.iso14755_52: false
-URxvt.transparent: true
+!URxvt.transparent: true
+urxvt*depth: 32
+!urxvt*background: rgba:0000/0000/02ff/cccc
+urxvt*background:       rgba:0000/0000/0000/cccc
 URxvt.shading: 15
-URxvt.perl-ext-common: resize-font
+URxvt.perl-ext-common: resize-font,fullscreen
 
 URxvt.resize-font.smaller: C-Down
 URxvt.resize-font.bigger: C-Up
+URxvt*keysym.F11: perl:fullscreen:switch

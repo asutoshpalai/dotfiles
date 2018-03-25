@@ -3,3 +3,5 @@
 	email = asupalai@gmail.com
 [core]
 	editor = vim
+[color]
+	ui = auto
