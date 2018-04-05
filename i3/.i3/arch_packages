@@ -1,7 +1,7 @@
 xorg-xbacklight
 ranger libcaca atool w3m poppler poppler-data zip unzip mediainfo highlight
-thunar xfce4-panel tumbler thunar-volman thunar-archive-plugin thunar-media-tags-plugin ffmpegthumbnailer poppler-glib libgsf libopenraw gvfs xarchiver
-mvp youtube-dl rtmpdump atomicparsley
+thunar xfce4-panel tumbler thunar-volman thunar-archive-plugin thunar-media-tags-plugin ffmpegthumbnailer poppler-glib libgsf libopenraw gvfs xarchiver polkit-gnome
+mpv youtube-dl rtmpdump atomicparsley
 dnust
 j4-make-config-git
 feh imagemagick
@@ -10,7 +10,7 @@ numix-circle-icon-theme-git
 polar-night-theme luv-icon-theme-git ttf-mac-fonts
 dmenu2
 leadpad
-escrotum-git
+escrotum-git scrot
 xorg-utils
 xautolock
 gvfs-afc usbmuxd
@@ -21,3 +21,4 @@ vlc qt4
 gsimplecal
 weechat aspell
 otf-inconsolata-powerline-git urxvt-resize-font-git  urxvt-fullscreen
+nm-applet gnome-keyring
