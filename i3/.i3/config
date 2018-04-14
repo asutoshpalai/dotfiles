@@ -52,7 +52,7 @@ client.background       $black
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
 # text rendering and scalability on retina/hidpi displays (thanks to pango).
 # font pango:DejaVu Sans Mono 9
-font pango:Hack, FontAwesome 9
+font pango:Hack, FontAwesome 8
 
 # Before i3 v4.8, we used to recommend this one as the default:
 # font -misc-fixed-medium-r-normal--13-120-75-75-C-70-iso10646-1
@@ -232,3 +232,7 @@ bindsym $mod+b exec firefox-nightly
 
 # start a terminal
 bindsym $mod+Return exec ~/.i3/i3-shell.sh
+
+# Position the gsimplecal
+for_window [class="(?i)gsimplecal"] floating enable, move position mouse, move down 20 px, move left 20px
+bindsym $mod+c exec gsimplecal

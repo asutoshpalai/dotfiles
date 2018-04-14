@@ -32,6 +32,7 @@
     (if *debug*
         (with-open-file (stream *log-file*
 				:direction :output
+        :if-does-not-exist :create
 				:if-exists :append)
           (format stream "~a~%" json)))
     (handle-input (string-trim ",[" json))))

@@ -7,7 +7,7 @@ j4-make-config-git
 feh imagemagick
 lxappearance numix-themes
 numix-circle-icon-theme-git
-polar-night-theme luv-icon-theme-git ttf-mac-fonts
+polar-night-theme luv-icon-theme-git ttf-mac-fonts ttf-hack
 dmenu2
 leadpad
 escrotum-git scrot

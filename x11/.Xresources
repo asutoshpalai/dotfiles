@@ -39,12 +39,12 @@ xterm*rightScrollBar:     true
 xterm*jumpScroll:         true
 xterm*multiScroll:        true
 
-URxvt.font: xft:Inconsolata:size=10,xft:Inconsolata\ for\ Powerline:size=10
-!URxvt.letterSpace: -1
+URxvt.font: xft:Inconsolata\ for\ Powerline:size=10:pixelsize=14
+URxvt.letterSpace: -1
 URxvt.scrollBar: false
 URxvt.iso14755: false
 URxvt.iso14755_52: false
-!URxvt.transparent: true
+URxvt.transparent: true
 urxvt*depth: 32
 !urxvt*background: rgba:0000/0000/02ff/cccc
 urxvt*background:       rgba:0000/0000/0000/cccc
