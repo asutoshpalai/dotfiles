@@ -7,3 +7,7 @@ ln -s $(realpath $(dirname "$0"))/config/!(..|.) ~/.config
 cd ~/.fzf && ./install --all
 vim +PlugInstall +qall
 ~/.tmux/plugins/tpm/bin/install_plugins
+
+if [[ "$OSTYPE" == "darwin"*  ]]; then
+  brew install llvm # for clangd
+fi

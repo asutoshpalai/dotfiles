@@ -1,0 +1,7 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhist_cnt =5
+let g:netrw_dirhist_1='/Users/asutosh/.tmux'
+let g:netrw_dirhist_2='/Users/asutosh/Learning/isl/lab04/xor'
+let g:netrw_dirhist_3='/Users/asutosh/Learning/pwn/codebreaker/task4'
+let g:netrw_dirhist_4='/Users/asutosh/Projects/rnoc/gtmobile-inventory/node_modules'
+let g:netrw_dirhist_5='/Users/asutosh/dotfiles'
