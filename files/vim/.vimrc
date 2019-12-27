@@ -46,6 +46,8 @@ Plug 'godlygeek/tabular'              " Fixing tabluar indentation
 Plug 'sheerun/vim-polyglot'           " Syntax plugin for a 100+ languages
 Plug 'prabirshrestha/async.vim'
 Plug 'prabirshrestha/vim-lsp'
+Plug 'prabirshrestha/asyncomplete.vim'
+Plug 'prabirshrestha/asyncomplete-lsp.vim'
 
 call plug#end()
 
@@ -426,7 +428,8 @@ function! CLsp()
   if executable('clangd')
     au User lsp_setup call lsp#register_server({
           \ 'name': 'clangd',
-          \ 'cmd': {server_info -> ['clangd', '-background-index'] },
+          \ 'cmd': {server_info -> ['linux-clangd', '-background-index'] },
+          "\ 'cmd': {server_info -> ['clangd', '-background-index'] },
           \ 'whitelist': ['c', 'cpp', 'objc', 'objcpp'],
           \ })
   endif
@@ -467,7 +470,8 @@ command! -bang -nargs=? -complete=dir Files
   \ call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
 
 let g:ale_lint_delay = 10000
-
+let g:ale_set_balloons=1
+let g:ale_linters = {'c': [], 'cpp': []} " Disabling for C/C++ in favour of vim-lsp
 
 " Highlight all instances of word under cursor, when idle.
 " Useful when studying strange source code.
@@ -495,6 +499,11 @@ endfunction
 " vim-lsp configurations
 let g:lsp_signs_enabled = 1         " enable signs
 let g:lsp_diagnostics_echo_cursor = 1 " enable echo under cursor when in normal mode
-noremap r :LspNextReference<CR>
-noremap R :LspPreviousReference<CR>
 noremap <leader>d :LspPeekDefinition<cr>
+"let g:lsp_log_verbose = 1
+"let g:lsp_log_file = expand('~/vim-lsp.log')
+
+" asyncomplete.vim configs
+inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <expr> <cr>    pumvisible() ? "\<C-y>" : "\<cr>"

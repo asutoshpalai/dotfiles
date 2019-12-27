@@ -31,7 +31,7 @@ gpp()
 }
 
 nvenv() {
-  virtualenv ~/.venvs/$1;
+  python3 -m venv ~/.venvs/$1;
   source ~/.venvs/$1/bin/activate
 }
 
