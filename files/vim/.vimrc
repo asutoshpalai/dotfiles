@@ -27,6 +27,7 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => vim-plug and plugin setup
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:ale_completion_enabled = 1
 call plug#begin()
 
 " Plugin outside ~/.vim/plugged with post-update hook
@@ -41,6 +42,7 @@ Plug 'mattn/emmet-vim'                " The awesome html helpers
 Plug 'scrooloose/nerdcommenter'       " Helps in commenting codes
 Plug 'airblade/vim-gitgutter'         " Marks the changed lines
 Plug 'tpope/vim-fugitive'             " Awesome git plugin
+Plug 'shumphrey/fugitive-gitlab.vim'
 Plug 'tpope/vim-surround'             " Changing the surrouding brackets/quotes
 Plug 'godlygeek/tabular'              " Fixing tabluar indentation
 Plug 'sheerun/vim-polyglot'           " Syntax plugin for a 100+ languages
@@ -48,6 +50,17 @@ Plug 'prabirshrestha/async.vim'
 Plug 'prabirshrestha/vim-lsp'
 Plug 'prabirshrestha/asyncomplete.vim'
 Plug 'prabirshrestha/asyncomplete-lsp.vim'
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries'  }
+Plug 'majutsushi/tagbar'
+Plug 'uber/prototool', { 'rtp':'vim/prototool'  }
+
+if has('nvim')
+  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins'  }
+else
+  Plug 'Shougo/deoplete.nvim'
+  Plug 'roxma/nvim-yarp'
+  Plug 'roxma/vim-hug-neovim-rpc'
+endif
 
 call plug#end()
 
@@ -136,7 +149,7 @@ set tm=500
 syntax enable
 
 set background=dark
-colorscheme dante
+colorscheme torte
 
 " Set extra options when running in GUI mode
 if has("gui_running")
@@ -417,7 +430,7 @@ nnoremap <silent><C-k> :set paste<CR>m`O<Esc>``:set nopaste<CR>
 au BufRead,BufNewFile *.asm set filetype=nasm
 au BufRead,BufNewFile *.s set filetype=gas
 
-let g:EditorConfig_core_mode = 'external_command'
+"let g:EditorConfig_core_mode = 'external_command'
 
 "highlight OverLength ctermbg=red ctermfg=white guibg=#592929
 "match OverLength /\%81v.\+/
@@ -428,10 +441,21 @@ function! CLsp()
   if executable('clangd')
     au User lsp_setup call lsp#register_server({
           \ 'name': 'clangd',
-          \ 'cmd': {server_info -> ['linux-clangd', '-background-index'] },
-          "\ 'cmd': {server_info -> ['clangd', '-background-index'] },
+          "\ 'cmd': {server_info -> ['linux-clangd', '-background-index'] },
+          \ 'cmd': {server_info -> ['clangd', '-background-index'] },
           \ 'whitelist': ['c', 'cpp', 'objc', 'objcpp'],
           \ })
+  endif
+endfunction
+
+function! GoLsp()
+  if executable('gopls')
+    au User lsp_setup call lsp#register_server({
+          \ 'name': 'gopls',
+          \ 'cmd': {server_info->['gopls'] },
+          \ 'whitelist': ['go'],
+          \ })
+    autocmd BufWritePre *.go LspDocumentFormatSync
   endif
 endfunction
 
@@ -446,6 +470,15 @@ autocmd FileType c,cpp
       \ setlocal tabstop=4 |
       \ setlocal shiftwidth=4 |
       \ call CLsp()
+
+autocmd FileType go
+      \ map <leader>d :GoDef<cr>|
+      \ map <leader>D :GoDecls<cr>|
+      \ map <leader>r :GoReferrers<cr>|
+      \ map <leader>f :GoFillStruct<cr>|
+      \ map <leader>i :GoInfo<cr>|
+      \ set foldmethod=syntax
+      "\ call GoLsp()
 
 autocmd FileType markdown
       \ setlocal spell |
@@ -471,7 +504,7 @@ command! -bang -nargs=? -complete=dir Files
 
 let g:ale_lint_delay = 10000
 let g:ale_set_balloons=1
-let g:ale_linters = {'c': [], 'cpp': []} " Disabling for C/C++ in favour of vim-lsp
+let g:ale_linters = {'c': [], 'cpp': [], 'go': [], 'proto': ['prototool-lint']} " Disabling for C/C++ in favour of vim-lsp
 
 " Highlight all instances of word under cursor, when idle.
 " Useful when studying strange source code.
@@ -500,6 +533,10 @@ endfunction
 let g:lsp_signs_enabled = 1         " enable signs
 let g:lsp_diagnostics_echo_cursor = 1 " enable echo under cursor when in normal mode
 noremap <leader>d :LspPeekDefinition<cr>
+set foldmethod=expr
+  \ foldexpr=lsp#ui#vim#folding#foldexpr()
+  \ foldtext=lsp#ui#vim#folding#foldtext()
+set foldlevel=99 " Not to fold the whole file by default
 "let g:lsp_log_verbose = 1
 "let g:lsp_log_file = expand('~/vim-lsp.log')
 
@@ -507,3 +544,31 @@ noremap <leader>d :LspPeekDefinition<cr>
 inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 inoremap <expr> <cr>    pumvisible() ? "\<C-y>" : "\<cr>"
+
+" netrw configs
+let g:netrw_banner = 0
+let g:netrw_liststyle = 3
+let g:netrw_browse_split = 4
+let g:netrw_altv = 1
+let g:netrw_winsize = 25
+map <leader>b :Vexplore!<cr>
+
+"deoplete
+let g:deoplete#enable_at_startup = 1
+call deoplete#custom#option('omni_patterns', { 'go': '[^. *\t]\.\w*'  })
+let g:deoplete#auto_complete_delay = 100
+let g:deoplete#auto_refresh_delay = 0
+
+nmap <C-x> :TagbarToggle<CR>
+let g:tagbar_autofocus = 1
+
+
+" Sometimes I wonder what's wrong with me
+if &term =~ '^screen'
+  " tmux knows the extended mouse mode
+  set ttymouse=sgr
+endif
+
+let g:go_metalinter_autosave = 0
+let g:go_metalinter_autosave_enabled=['golint', 'govet', 'typecheck']
+let g:go_metalinter_command='golangci-lint'

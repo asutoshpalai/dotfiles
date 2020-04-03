@@ -48,6 +48,10 @@ diffdir() {
   diff  -ENwbur $@ | vim -R -
 }
 
+gg() {
+  echo "Git goto $1"
+  cd "$(gg.sh $1)"
+}
 
 export NVM_DIR=~/.nvm
 #[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -171,6 +175,8 @@ if ! shopt -oq posix; then
     . /usr/share/bash-completion/bash_completion
   elif [ -f /etc/bash_completion  ]; then
     . /etc/bash_completion
+  elif [ -f /usr/local/etc/profile.d/bash_completion.sh  ]; then # macOS
+    . "/usr/local/etc/profile.d/bash_completion.sh"
   fi
 fi
 
@@ -190,24 +196,27 @@ export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 
 [[ -s "$HOME/.rvm/scripts/rvm"  ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 
+
 # Meet the sweet git helpers
-[ -s "$HOME/.scm_breeze/scm_breeze.sh" ] && source "$HOME/.scm_breeze/scm_breeze.sh"
-
-PATH="/home/comedian/perl5/bin${PATH:+:${PATH}}"; export PATH;
-PERL5LIB="/home/comedian/perl5/lib/perl5${PERL5LIB:+:${PERL5LIB}}"; export PERL5LIB;
-PERL_LOCAL_LIB_ROOT="/home/comedian/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOCAL_LIB_ROOT}}"; export PERL_LOCAL_LIB_ROOT;
-PERL_MB_OPT="--install_base \"/home/comedian/perl5\""; export PERL_MB_OPT;
-PERL_MM_OPT="INSTALL_BASE=/home/comedian/perl5"; export PERL_MM_OPT;
-
-export PATH="$HOME/.cargo/bin:$PATH"
+#[ -s "$HOME/.scm_breeze/scm_breeze.sh" ] && source "$HOME/.scm_breeze/scm_breeze.sh"
+ eval "$(scmpuff init -s)"
+scmpuff_cmds=(vim rm bat)
+for cmd in "${scmpuff_cmds[@]}"; do
+  #echo "export SCMPUFF_${cmd}_CMD=\"$(\which $cmd)\";${cmd} () { eval \"\$(scmpuff expand -- \"\$SCMPUFF_${cmd}_CMD\"  \$@ )\"; }"
+  eval "export SCMPUFF_${cmd}_CMD=\"$(\which $cmd)\";${cmd} () { eval \"\$(scmpuff expand -- \"\$SCMPUFF_${cmd}_CMD\"  \$@ )\"; }"
+done
+alias gc='git commit'
+alias gf='git fetch'
 
 [ -f ~/.fzf.bash  ] && source ~/.fzf.bash
 
+export PATH="$HOME/.cargo/bin:$PATH"
 
-if [ -x ~/.vim/plugged/fzf.vim/bin/preview.rb  ]; then
-  export FZF_CTRL_T_OPTS="--preview '~/.vim/plugged/fzf.vim/bin/preview.rb {} | head -200'"
+if [ -x ~/.vim/plugged/fzf.vim/bin/preview.sh  ]; then
+  export FZF_CTRL_T_OPTS="--preview '~/.vim/plugged/fzf.vim/bin/preview.sh {} | head -200'"
 fi
 
 export FZF_CTRL_R_OPTS="--preview 'echo {}' --preview-window down:3:hidden:wrap --bind '?:toggle-preview' --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort' --header 'Press CTRL-Y to copy command into clipboard' --border"
 
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+source <(kubectl completion bash)

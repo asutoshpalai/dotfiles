@@ -1,4 +1,3 @@
-#!/bin/bash
 #     ____      ____
 #    / __/___  / __/
 #   / /_/_  / / /_
@@ -10,12 +9,14 @@
 # - $FZF_COMPLETION_TRIGGER (default: '**')
 # - $FZF_COMPLETION_OPTS    (default: empty)
 
+if [[ $- =~ i ]]; then
+
 # To use custom commands instead of find, override _fzf_compgen_{path,dir}
 if ! declare -f _fzf_compgen_path > /dev/null; then
   _fzf_compgen_path() {
     echo "$1"
     command find -L "$1" \
-      -name .git -prune -o -name .svn -prune -o \( -type d -o -type f -o -type l \) \
+      -name .git -prune -o -name .hg -prune -o -name .svn -prune -o \( -type d -o -type f -o -type l \) \
       -a -not -path "$1" -print 2> /dev/null | sed 's@^\./@@'
   }
 fi
@@ -23,7 +24,7 @@ fi
 if ! declare -f _fzf_compgen_dir > /dev/null; then
   _fzf_compgen_dir() {
     command find -L "$1" \
-      -name .git -prune -o -name .svn -prune -o -type d \
+      -name .git -prune -o -name .hg -prune -o -name .svn -prune -o -type d \
       -a -not -path "$1" -print 2> /dev/null | sed 's@^\./@@'
   }
 fi
@@ -38,9 +39,9 @@ __fzfcmd_complete() {
     echo "fzf-tmux -d${FZF_TMUX_HEIGHT:-40%}" || echo "fzf"
 }
 
-_fzf_orig_completion_filter() {
-  sed 's/^\(.*-F\) *\([^ ]*\).* \([^ ]*\)$/export _fzf_orig_completion_\3="\1 %s \3 #\2";/' |
-  awk -F= '{gsub(/[^A-Za-z0-9_= ;]/, "_", $1); print $1"="$2}'
+__fzf_orig_completion_filter() {
+  sed 's/^\(.*-F\) *\([^ ]*\).* \([^ ]*\)$/export _fzf_orig_completion_\3="\1 %s \3 #\2"; [[ "\1" = *" -o nospace "* ]] \&\& [[ ! "$__fzf_nospace_commands" = *" \3 "* ]] \&\& __fzf_nospace_commands="$__fzf_nospace_commands \3 ";/' |
+  awk -F= '{OFS = FS} {gsub(/[^A-Za-z0-9_= ;]/, "_", $1);}1'
 }
 
 _fzf_opts_completion() {
@@ -113,7 +114,7 @@ _fzf_opts_completion() {
 }
 
 _fzf_handle_dynamic_completion() {
-  local cmd orig_var orig ret orig_cmd
+  local cmd orig_var orig ret orig_cmd orig_complete
   cmd="$1"
   shift
   orig_cmd="$1"
@@ -122,10 +123,18 @@ _fzf_handle_dynamic_completion() {
   if [ -n "$orig" ] && type "$orig" > /dev/null 2>&1; then
     $orig "$@"
   elif [ -n "$_fzf_completion_loader" ]; then
+    orig_complete=$(complete -p "$orig_cmd" 2> /dev/null)
     _completion_loader "$@"
     ret=$?
-    eval "$(complete | command grep "\-F.* $orig_cmd$" | _fzf_orig_completion_filter)"
-    source "${BASH_SOURCE[0]}"
+    # _completion_loader may not have updated completion for the command
+    if [ "$(complete -p "$orig_cmd" 2> /dev/null)" != "$orig_complete" ]; then
+      eval "$(complete | command grep " -F.* $orig_cmd$" | __fzf_orig_completion_filter)"
+      if [[ "$__fzf_nospace_commands" = *" $orig_cmd "* ]]; then
+        eval "${orig_complete/ -F / -o nospace -F }"
+      else
+        eval "$orig_complete"
+      fi
+    fi
     return $ret
   fi
 }
@@ -141,7 +150,7 @@ __fzf_generic_path_completion() {
     base=${cur:0:${#cur}-${#trigger}}
     eval "base=$base"
 
-    dir="$base"
+    [[ $base = *"/"* ]] && dir="$base"
     while true; do
       if [ -z "$dir" ] || [ -d "$dir" ]; then
         leftover=${base/#"$dir"}
@@ -152,6 +161,7 @@ __fzf_generic_path_completion() {
           printf "%q$3 " "$item"
         done)
         matches=${matches% }
+        [[ -z "$3" ]] && [[ "$__fzf_nospace_commands" = *" ${COMP_WORDS[0]} "* ]] && matches="$matches "
         if [ -n "$matches" ]; then
           COMPREPLY=( "$matches" )
         else
@@ -185,12 +195,13 @@ _fzf_complete() {
 
     selected=$(cat | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_COMPLETION_OPTS" $fzf $1 -q "$cur" | $post | tr '\n' ' ')
     selected=${selected% } # Strip trailing space not to repeat "-o nospace"
-    printf '\e[5n'
-
     if [ -n "$selected" ]; then
       COMPREPLY=("$selected")
-      return 0
+    else
+      COMPREPLY=("$cur")
     fi
+    printf '\e[5n'
+    return 0
   else
     shift
     _fzf_handle_dynamic_completion "$cmd" "$@"
@@ -224,35 +235,22 @@ _fzf_complete_kill() {
   fi
 }
 
-_fzf_complete_telnet() {
+_fzf_host_completion() {
   _fzf_complete '+m' "$@" < <(
-    command grep -v '^\s*\(#\|$\)' /etc/hosts | command grep -Fv '0.0.0.0' |
-        awk '{if (length($2) > 0) {print $2}}' | sort -u
-  )
-}
-
-_fzf_complete_ssh() {
-  _fzf_complete '+m' "$@" < <(
-    cat <(cat ~/.ssh/config /etc/ssh/ssh_config 2> /dev/null | command grep -i '^host' | command grep -v '*' | awk '{for (i = 2; i <= NF; i++) print $1 " " $i}') \
+    cat <(cat ~/.ssh/config ~/.ssh/config.d/* /etc/ssh/ssh_config 2> /dev/null | command grep -i '^\s*host\(name\)\? ' | awk '{for (i = 2; i <= NF; i++) print $1 " " $i}' | command grep -v '[*?]') \
         <(command grep -oE '^[[a-z0-9.,:-]+' ~/.ssh/known_hosts | tr ',' '\n' | tr -d '[' | awk '{ print $1 " " $1 }') \
         <(command grep -v '^\s*\(#\|$\)' /etc/hosts | command grep -Fv '0.0.0.0') |
         awk '{if (length($2) > 0) {print $2}}' | sort -u
   )
 }
 
-_fzf_complete_unset() {
+_fzf_var_completion() {
   _fzf_complete '-m' "$@" < <(
     declare -xp | sed 's/=.*//' | sed 's/.* //'
   )
 }
 
-_fzf_complete_export() {
-  _fzf_complete '-m' "$@" < <(
-    declare -xp | sed 's/=.*//' | sed 's/.* //'
-  )
-}
-
-_fzf_complete_unalias() {
+_fzf_alias_completion() {
   _fzf_complete '-m' "$@" < <(
     alias | sed 's/=.*//' | sed 's/.* //'
   )
@@ -271,18 +269,18 @@ a_cmds="
   find git grep gunzip gzip hg jar
   ln ls mv open rm rsync scp
   svn tar unzip zip"
-x_cmds="kill ssh telnet unset unalias export"
+x_cmds="kill"
 
 # Preserve existing completion
-eval $(complete |
+eval "$(complete |
   sed -E '/-F/!d; / _fzf/d; '"/ ($(echo $d_cmds $a_cmds $x_cmds | sed 's/ /|/g; s/+/\\+/g'))$/"'!d' |
-  _fzf_orig_completion_filter)
+  __fzf_orig_completion_filter)"
 
 if type _completion_loader > /dev/null 2>&1; then
   _fzf_completion_loader=1
 fi
 
-_fzf_defc() {
+__fzf_defc() {
   local cmd func opts orig_var orig def
   cmd="$1"
   func="$2"
@@ -299,26 +297,42 @@ _fzf_defc() {
 
 # Anything
 for cmd in $a_cmds; do
-  _fzf_defc "$cmd" _fzf_path_completion "-o default -o bashdefault"
+  __fzf_defc "$cmd" _fzf_path_completion "-o default -o bashdefault"
 done
 
 # Directory
 for cmd in $d_cmds; do
-  _fzf_defc "$cmd" _fzf_dir_completion "-o nospace -o dirnames"
+  __fzf_defc "$cmd" _fzf_dir_completion "-o nospace -o dirnames"
 done
 
-unset _fzf_defc
-
 # Kill completion
-complete -F _fzf_complete_kill -o nospace -o default -o bashdefault kill
-
-# Host completion
-complete -F _fzf_complete_ssh -o default -o bashdefault ssh
-complete -F _fzf_complete_telnet -o default -o bashdefault telnet
-
-# Environment variables / Aliases
-complete -F _fzf_complete_unset -o default -o bashdefault unset
-complete -F _fzf_complete_export -o default -o bashdefault export
-complete -F _fzf_complete_unalias -o default -o bashdefault unalias
+complete -F _fzf_complete_kill -o default -o bashdefault kill
 
 unset cmd d_cmds a_cmds x_cmds
+
+_fzf_setup_completion() {
+  local kind fn cmd
+  kind=$1
+  fn=_fzf_${1}_completion
+  if [[ $# -lt 2 ]] || ! type -t "$fn" > /dev/null; then
+    echo "usage: ${FUNCNAME[0]} path|dir|var|alias|host COMMANDS..."
+    return 1
+  fi
+  shift
+  for cmd in "$@"; do
+    eval "$(complete -p "$cmd" 2> /dev/null | grep -v "$fn" | __fzf_orig_completion_filter)"
+    case "$kind" in
+      dir)   __fzf_defc "$cmd" "$fn" "-o nospace -o dirnames" ;;
+      var)   __fzf_defc "$cmd" "$fn" "-o default -o nospace -v" ;;
+      alias) __fzf_defc "$cmd" "$fn" "-a" ;;
+      *)     __fzf_defc "$cmd" "$fn" "-o default -o bashdefault" ;;
+    esac
+  done
+}
+
+# Environment variables / Aliases / Hosts
+_fzf_setup_completion 'var'   export unset
+_fzf_setup_completion 'alias' unalias
+_fzf_setup_completion 'host'  ssh telnet
+
+fi

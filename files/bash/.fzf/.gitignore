@@ -1,4 +1,5 @@
 bin/fzf
+bin/fzf.exe
 target
 pkg
 Gemfile.lock
@@ -6,3 +7,5 @@ Gemfile.lock
 doc/tags
 vendor
 gopath
+*.zwc
+fzf

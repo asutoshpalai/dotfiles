@@ -16,7 +16,7 @@
 # --------------------------------------------------------------------
 git_status_shortcuts() {
   zsh_compat # Ensure shwordsplit is on for zsh
-  IFS=$'\n'
+  local IFS=$'\n'
   local git_status="$(git status --porcelain 2> /dev/null)"
   local i
 
@@ -95,7 +95,7 @@ git_status_shortcuts() {
       fi
     done
 
-    IFS=" "
+    local IFS=" "
     grp_num=1
     for heading in 'Changes to be committed' 'Unmerged paths' 'Changes not staged for commit' 'Untracked files'; do
       # If no group specified as param, or specified group is current group
@@ -114,11 +114,12 @@ git_status_shortcuts() {
     # so just use plain 'git status'
     git status
   fi
-  IFS=$' \t\n'
   zsh_reset # Reset zsh environment to default
 }
 # Template function for 'git_status_shortcuts'.
 _gs_output_file_group() {
+  local relative
+
   for i in ${stat_grp[$1]}; do
     # Print colored hashes & files based on modification groups
     local c_group="\033[0;$(eval echo -e \$c_grp_$1)"
@@ -127,9 +128,10 @@ _gs_output_file_group() {
     if [ -z "$project_root" ]; then
       relative="${stat_file[$i]}"
     else
-      dest="$project_root/${stat_file[$i]}"
+      local absolute="$project_root/${stat_file[$i]}"
+      local dest=$(readlink -f "$absolute")
       local pwd=$(readlink -f "$PWD")
-      relative="$(_gs_relative_path "$pwd" "$dest" )"
+      relative="$(_gs_relative_path "$pwd" "${dest:-$absolute}" )"
     fi
 
     if [[ $f -gt 10 && $e -lt 10 ]]; then local pad=" "; else local pad=""; fi   # (padding)
@@ -150,7 +152,7 @@ _gs_relative_path(){
   # Credit to 'pini' for the following script.
   # (http://stackoverflow.com/questions/2564634/bash-convert-absolute-path-into-relative-path-given-a-current-directory)
   target=$2; common_part=$1; back=""
-  while [[ "${target#$common_part}" == "${target}" ]]; do
+  while [[ -n "${common_part}" && "${target#$common_part}" == "${target}" ]]; do
     common_part="${common_part%/*}"
     back="../${back}"
   done

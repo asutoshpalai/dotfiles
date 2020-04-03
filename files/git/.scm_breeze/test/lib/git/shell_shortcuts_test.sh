@@ -31,13 +31,21 @@ oneTimeSetUp() {
   alias rvm="test" # Ensure tests run if RVM isn't loaded but $HOME/.rvm is present
 
   # Test functions
-  function ln() { ln $@; }
+  function ln() { ln "$@"; }
+
+  # Before aliasing, get original locations so we can compare them in the test
+  unalias mv rm sed cat 2>/dev/null
+  export mv_path="$(bin_path mv)"
+  export rm_path="$(bin_path rm)"
+  export sed_path="$(bin_path sed)"
+  export cat_path="$(bin_path cat)"
+
   # Test aliases
-  alias mv="nocorrect mv"
-  alias rm="rm --option"
-  alias sed="sed"
+  alias mv="nocorrect $mv_path"
+  alias rm="$rm_path --option"
+  alias sed="$sed_path"
   # Test already wrapped commands
-  alias cat="exec_scmb_expand_args /bin/cat"
+  alias cat="exec_scmb_expand_args $cat_path"
 
   # Run shortcut wrapping
   source "$scmbDir/lib/git/shell_shortcuts.sh"
@@ -55,15 +63,24 @@ assertAliasEquals(){
 
 
 #-----------------------------------------------------------------------------
+# Setup and tear down
+#-----------------------------------------------------------------------------
+
+setUp() {
+  unset QUOTING_STYLE  # Use default quoting style for ls
+}
+
+
+#-----------------------------------------------------------------------------
 # Unit tests
 #-----------------------------------------------------------------------------
 
 test_shell_command_wrapping() {
-  assertAliasEquals "exec_scmb_expand_args /bin/rm --option"  "rm"
-  assertAliasEquals "exec_scmb_expand_args nocorrect /bin/mv" "mv"
-  assertAliasEquals "exec_scmb_expand_args /bin/sed"          "sed"
-  assertAliasEquals "exec_scmb_expand_args /bin/cat"          "cat"
-  assertAliasEquals "exec_scmb_expand_args builtin cd"        "cd"
+  assertAliasEquals "exec_scmb_expand_args nocorrect $mv_path" "mv"
+  assertAliasEquals "exec_scmb_expand_args $rm_path --option"  "rm"
+  assertAliasEquals "exec_scmb_expand_args $sed_path"          "sed"
+  assertAliasEquals "exec_scmb_expand_args $cat_path"          "cat"
+  assertAliasEquals "exec_scmb_expand_args builtin cd"         "cd"
   assertIncludes    "$(declare -f ln)" "ln ()"
   assertIncludes    "$(declare -f ln)" "exec_scmb_expand_args __original_ln"
 }
@@ -72,18 +89,26 @@ test_ls_with_file_shortcuts() {
   export git_env_char="e"
 
   TEST_DIR=$(mktemp -d -t scm_breeze.XXXXXXXXXX)
-  cd $TEST_DIR
+
+  # Darwin actually symlinks /var inside /private, but mktemp reports back the
+  # logical pathat time of file creation.  So make sure we always get the
+  # full physical path to be absolutely certain when doing comparisons later,
+  # because thats how the Ruby status_shortcuts.rb script is going to obtain
+  # them.
+  cd "$TEST_DIR"
+  TEST_DIR=$(pwd -P)
+
   touch 'test file' 'test_file'
   mkdir -p "a [b]" 'a "b"' "a 'b'"
-  touch "a \"b\"/c"
+  touch 'a "b"/c'
 
   # Run command in shell, load output from temp file into variable
   # (This is needed so that env variables are exported in the current shell)
   temp_file=$(mktemp -t scm_breeze.XXXXXXXXXX)
-  ls_with_file_shortcuts > $temp_file
-  ls_output=$(<$temp_file strip_colors)
+  ls_with_file_shortcuts > "$temp_file"
+  ls_output=$(<"$temp_file" strip_colors)
 
-  # Compare as fixed strings (F), instead of regex (P)
+  # Compare as fixed strings (F), instead of normal grep behavior
   assertIncludes "$ls_output" '[1]  a "b"' F
   assertIncludes "$ls_output" "[2]  a 'b'" F
   assertIncludes "$ls_output" '[3]  a [b]' F
@@ -102,10 +127,24 @@ test_ls_with_file_shortcuts() {
   ls_output=$(<$temp_file strip_colors)
   assertIncludes "$ls_output" '[1]  c' F
   # Test that env variable is set correctly
-  assertEquals "$TEST_DIR/a \"b\"/c" "$e1"
+  assertEquals "$TEST_DIR/"'a "b"/c' "$e1"
   # Test arg with no quotes
   ls_output=$(ls_with_file_shortcuts a\ \"b\" | strip_colors)
   assertIncludes "$ls_output" '[1]  c' F
+
+  # Listing two directories fails (see issue #275)
+  mkdir 1 2
+  touch 1/file
+  assertFalse 'Only one directory supported' 'ls_with_file_shortcuts 1 2'
+  assertFalse 'Fails on <directory> <file>' 'ls_with_file_shortcuts 1 test_file'
+  assertFalse 'Fails on <file> <directory>' 'ls_with_file_shortcuts test_file 1'
+  assertFalse 'Fails on <directory> <directory>/<file>' 'ls_with_file_shortcuts 1 1/file'
+
+  # Files under the root directory
+  assertTrue 'Shortcuts under /' 'ls_with_file_shortcuts / > /dev/null && [[ $e1 =~ ^/[^/]+$ ]]'
+
+  cd -
+  rm -r "$TEST_DIR" "$temp_file"
 }
 
 # load and run shUnit2

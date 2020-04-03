@@ -17,11 +17,12 @@ func RuneWidth(r rune, prefixWidth int, tabstop int) int {
 		return tabstop - prefixWidth%tabstop
 	} else if w, found := _runeWidths[r]; found {
 		return w
-	} else {
-		w := Max(runewidth.RuneWidth(r), 1)
-		_runeWidths[r] = w
-		return w
+	} else if r == '\n' || r == '\r' {
+		return 1
 	}
+	w := runewidth.RuneWidth(r)
+	_runeWidths[r] = w
+	return w
 }
 
 // Max returns the largest integer
@@ -110,4 +111,14 @@ func DurWithin(
 // IsTty returns true is stdin is a terminal
 func IsTty() bool {
 	return isatty.IsTerminal(os.Stdin.Fd())
+}
+
+// Once returns a function that returns the specified boolean value only once
+func Once(nextResponse bool) func() bool {
+	state := nextResponse
+	return func() bool {
+		prevState := state
+		state = false
+		return prevState
+	}
 }

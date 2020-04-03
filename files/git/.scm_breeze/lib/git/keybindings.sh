@@ -24,16 +24,24 @@ _bind(){
 if [[ "$git_keyboard_shortcuts_enabled" = "true" ]]; then
   case "$-" in
   *i*)
+      if [ -n "$ZSH_VERSION" ]; then
+        RETURN_CHAR="^M"
+      else
+        RETURN_CHAR="\n"
+      fi
+
       # Uses emacs style keybindings, so vi mode is not supported for now
       if ! set -o | grep -q '^vi .*on$'; then
         if [[ $shell == "zsh" ]]; then
-          _bind "$git_commit_all_keys"              " git_commit_all""\n"
-          _bind "$git_add_and_commit_keys"          " \033[1~ git_add_and_commit ""\n"
-          _bind "$git_commit_all_with_ci_skip_keys" " \033[1~ APPEND='[ci skip]' git_commit_all ""\n"
+          _bind "$git_commit_all_keys"              " git_commit_all""$RETURN_CHAR"
+          _bind "$git_add_and_commit_keys"          " \033[1~ git_add_and_commit ""$RETURN_CHAR"
+          _bind "$git_commit_all_with_ci_skip_keys" " \033[1~ GIT_COMMIT_MSG_SUFFIX='[ci skip]' git_commit_all ""$RETURN_CHAR"
+          _bind "$git_add_and_amend_commit_keys"    " git add --all . && git commit --amend -C HEAD""$RETURN_CHAR"
         else
-          _bind "$git_commit_all_keys"              "\" git_commit_all\n\""
-          _bind "$git_add_and_commit_keys"          "\"\033[1~ git_add_and_commit \n\""
-          _bind "$git_commit_all_with_ci_skip_keys" "\"\033[1~ APPEND='[ci skip]' git_commit_all \n\""
+          _bind "$git_commit_all_keys"              "\" git_commit_all$RETURN_CHAR\""
+          _bind "$git_add_and_commit_keys"          "\"\C-A git_add_and_commit $RETURN_CHAR\""
+          _bind "$git_commit_all_with_ci_skip_keys" "\"\C-A GIT_COMMIT_MSG_SUFFIX='[ci skip]' git_commit_all $RETURN_CHAR\""
+          _bind "$git_add_and_amend_commit_keys"    "\" git add --all . && git commit --amend -C HEAD$RETURN_CHAR\""
         fi
       fi
 

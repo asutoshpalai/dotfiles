@@ -9,35 +9,35 @@ func TestParseRange(t *testing.T) {
 		i := ".."
 		r, _ := ParseRange(&i)
 		if r.begin != rangeEllipsis || r.end != rangeEllipsis {
-			t.Errorf("%s", r)
+			t.Errorf("%v", r)
 		}
 	}
 	{
 		i := "3.."
 		r, _ := ParseRange(&i)
 		if r.begin != 3 || r.end != rangeEllipsis {
-			t.Errorf("%s", r)
+			t.Errorf("%v", r)
 		}
 	}
 	{
 		i := "3..5"
 		r, _ := ParseRange(&i)
 		if r.begin != 3 || r.end != 5 {
-			t.Errorf("%s", r)
+			t.Errorf("%v", r)
 		}
 	}
 	{
 		i := "-3..-5"
 		r, _ := ParseRange(&i)
 		if r.begin != -3 || r.end != -5 {
-			t.Errorf("%s", r)
+			t.Errorf("%v", r)
 		}
 	}
 	{
 		i := "3"
 		r, _ := ParseRange(&i)
 		if r.begin != 3 || r.end != 3 {
-			t.Errorf("%s", r)
+			t.Errorf("%v", r)
 		}
 	}
 }
@@ -73,7 +73,7 @@ func TestTransform(t *testing.T) {
 		{
 			ranges := splitNth("1,2,3")
 			tx := Transform(tokens, ranges)
-			if string(joinTokens(tx)) != "abc:  def:  ghi:  " {
+			if joinTokens(tx) != "abc:  def:  ghi:  " {
 				t.Errorf("%s", tx)
 			}
 		}
@@ -95,7 +95,7 @@ func TestTransform(t *testing.T) {
 		{
 			ranges := splitNth("1..2,3,2..,1")
 			tx := Transform(tokens, ranges)
-			if string(joinTokens(tx)) != "  abc:  def:  ghi:  def:  ghi:  jkl  abc:" ||
+			if joinTokens(tx) != "  abc:  def:  ghi:  def:  ghi:  jkl  abc:" ||
 				len(tx) != 4 ||
 				tx[0].text.ToString() != "  abc:  def:" || tx[0].prefixLength != 0 ||
 				tx[1].text.ToString() != "  ghi:" || tx[1].prefixLength != 12 ||

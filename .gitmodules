@@ -1,9 +1,9 @@
-[submodule "git/.scm_breeze"]
-	path = git/.scm_breeze
-	url = git://github.com/ndbroadbent/scm_breeze.git
-[submodule "bash/.tmux/plugins/tpm"]
-	path = bash/.tmux/plugins/tpm
+[submodule "files/git/.scm_breeze"]
+	path = files/git/.scm_breeze
+	url = https://github.com/scmbreeze/scm_breeze
+[submodule "files/bash/.tmux/plugins/tpm"]
+	path = files/bash/.tmux/plugins/tpm
 	url = https://github.com/tmux-plugins/tpm
-[submodule "bash/.fzf"]
-	path = bash/.fzf
+[submodule "files/bash/.fzf"]
+	path = files/bash/.fzf
 	url = https://github.com/junegunn/fzf

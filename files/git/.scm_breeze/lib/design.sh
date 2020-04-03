@@ -23,7 +23,7 @@
 
 # Add ignore rule to .git/info/exclude if not already present
 _design_add_git_exclude(){
-  local git_dir="$(cd $1 && readlink -m $(git rev-parse --git-dir))"
+  local git_dir="$(cd $1 && cd `git rev-parse --git-dir` && pwd -P)"
   if [ -e "$git_dir/info/exclude" ] && ! $(grep -q "$project_design_dir" "$git_dir/info/exclude"); then
     echo "$project_design_dir" >> "$git_dir/info/exclude"
   fi
@@ -34,7 +34,7 @@ design() {
   local project=`basename $(pwd)`
   local all_project_dirs="$design_base_dirs $design_av_dirs"
   # Ensure design dir contains all subdirectories
-  IFS=$' \t\n'
+  local IFS=$' \t\n'
   # Create root design dirs
   for dir in $design_ext_dirs; do mkdir -p "$root_design_dir/$dir"; done
   # Create project design dirs

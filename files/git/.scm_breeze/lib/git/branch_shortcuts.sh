@@ -13,15 +13,16 @@
 unalias $git_branch_alias > /dev/null 2>&1; unset -f $git_branch_alias > /dev/null 2>&1
 function _scmb_git_branch_shortcuts {
   fail_if_not_git_repo || return 1
+
   # Fall back to normal git branch, if any unknown args given
-  if [[ -n "$@" ]] && [[ "$@" != "-a" ]]; then
+  if [[ "$($_git_cmd branch | wc -l)" -gt 300 ]] || ([[ -n "$@" ]] && [[ "$@" != "-a" ]]); then
     exec_scmb_expand_args $_git_cmd branch "$@"
     return 1
   fi
 
-  # Use ruby to inject numbers into ls output
+  # Use ruby to inject numbers into git branch output
   ruby -e "$( cat <<EOF
-    output = %x($_git_cmd branch --color=always $@)
+    output = %x($_git_cmd branch --color=always $(token_quote "$@"))
     line_count = output.lines.to_a.size
     output.lines.each_with_index do |line, i|
       spaces = (line_count > 9 && i < 9 ? "  " : " ")
@@ -31,7 +32,7 @@ EOF
 )"
 
   # Set numbered file shortcut in variable
-  local e=1
+  local e=1 IFS=$'\n'
   for branch in $($_git_cmd branch "$@" | sed "s/^[* ]\{2\}//"); do
     export $git_env_char$e="$branch"
     if [ "${scmbDebug:-}" = "true" ]; then echo "Set \$$git_env_char$e  => $file"; fi

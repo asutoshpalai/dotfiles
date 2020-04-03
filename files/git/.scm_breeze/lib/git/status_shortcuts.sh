@@ -21,7 +21,7 @@ git_status_shortcuts() {
   zsh_compat # Ensure shwordsplit is on for zsh
   git_clear_vars
   # Run ruby script, store output
-  local cmd_output="$(/usr/bin/env ruby "$scmbDir/lib/git/status_shortcuts.rb" $@)"
+  local cmd_output="$(/usr/bin/env ruby "$scmbDir/lib/git/status_shortcuts.rb" "$@")"
   # Print debug information if $scmbDebug = "true"
   if [ "${scmbDebug:-}" = "true" ]; then
     printf "status_shortcuts.rb output => \n$cmd_output\n------------------------\n"
@@ -36,14 +36,13 @@ git_status_shortcuts() {
   files="$(echo "$cmd_output" | \grep '@@filelist@@::' | sed 's%@@filelist@@::%%g')"
   if [ "${scmbDebug:-}" = "true" ]; then echo "filelist => $files"; fi
   # Export numbered env variables for each file
-  IFS="|"
+  local IFS="|"
   local e=1
   for file in $files; do
     export $git_env_char$e="$file"
     if [ "${scmbDebug:-}" = "true" ]; then echo "Set \$$git_env_char$e  => $file"; fi
     let e++
   done
-  IFS=$' \t\n'
 
   if [ "${scmbDebug:-}" = "true" ]; then echo "------------------------"; fi
   # Print status
@@ -80,10 +79,11 @@ git_add_shortcuts() {
 git_silent_add_shortcuts() {
   if [ -n "$1" ]; then
     # Expand args and process resulting set of files.
-    IFS=$'\t'
-    for file in $(scmb_expand_args "$@"); do
+    local args
+    eval args="$(scmb_expand_args "$@")"  # populate $args array
+    for file in "${args[@]}"; do
       # Use 'git rm' if file doesn't exist and 'ga_auto_remove' is enabled.
-      if [[ $ga_auto_remove == "yes" ]] && ! [ -e "$file" ]; then
+      if [[ $ga_auto_remove = yes && ! -e $file ]]; then
         echo -n "# "
         git rm "$file"
       else
@@ -91,7 +91,6 @@ git_silent_add_shortcuts() {
         echo -e "# Added '$file'"
       fi
     done
-    IFS=$' \t\n'
     echo "#"
   fi
 }
@@ -100,18 +99,18 @@ git_silent_add_shortcuts() {
 # and exports numbered environment variables for each file.
 git_show_affected_files(){
   fail_if_not_git_repo || return 1
-  f=0  # File count
+  local f=0  # File count
   # Show colored revision and commit message
-  echo -n "# "; git show --oneline --name-only $@ | head -n1; echo "# "
-  for file in $(git show --pretty="format:" --name-only $@ | \grep -v '^$'); do
+  echo -n "# "; git show --oneline --name-only "$@" | head -n1; echo "# "
+  for file in $(git show --pretty="format:" --name-only "$@" | \grep -v '^$'); do
     let f++
     export $git_env_char$f=$file     # Export numbered variable.
     echo -e "#     \033[2;37m[\033[0m$f\033[2;37m]\033[0m $file"
   done; echo "# "
 }
 
-
 # Allows expansion of numbered shortcuts, ranges of shortcuts, or standard paths.
+# Return a string which can be `eval`ed like: eval args="$(scmb_expand_args "$@")"
 # Numbered shortcut variables are produced by various commands, such as:
 # * git_status_shortcuts()  - git status implementation
 # * git_show_affected_files() - shows files affected by a given SHA1, etc.
@@ -122,43 +121,52 @@ scmb_expand_args() {
     shift
   fi
 
-  first=1
-  OLDIFS="$IFS"; IFS=" " # We need to split on spaces to loop over expanded range
+  local args
+  args=()  # initially empty array. zsh 5.0.2 from Ubuntu 14.04 requires this to be separated
   for arg in "$@"; do
     if [[ "$arg" =~ ^[0-9]{0,4}$ ]] ; then      # Substitute $e{*} variables for any integers
-      if [ "$first" -eq 1 ]; then first=0; else printf '\t'; fi
       if [ -e "$arg" ]; then
         # Don't expand files or directories with numeric names
-        printf '%s' "$arg"
+        args+=("$arg")
       else
-        _print_path "$relative" "$git_env_char$arg"
+        args+=("$(_print_path "$relative" "$git_env_char$arg")")
       fi
     elif [[ "$arg" =~ ^[0-9]+-[0-9]+$ ]]; then           # Expand ranges into $e{*} variables
-
       for i in $(eval echo {${arg/-/..}}); do
-        if [ "$first" -eq 1 ]; then first=0; else printf '\t'; fi
-        _print_path "$relative" "$git_env_char$i"
+        args+=("$(_print_path "$relative" "$git_env_char$i")")
       done
     else   # Otherwise, treat $arg as a normal string.
-      if [ "$first" -eq 1 ]; then first=0; else printf '\t'; fi
-      printf '%s' "$arg"
+      args+=("$arg")
     fi
   done
-  IFS="$OLDIFS"
+
+  # "declare -p" with zsh 5.0.2 on Ubuntu 14.04 creates a string that it cannot process:
+  # typeset -a args args=(one three six)
+  # There should be a ; between the two "args" tokens
+  # "declare -p" with bash 4.3.11(1) on Ubuntu 14.04 creates a string like:
+  # declare -a a='([0]="a" [1]="b c" [2]="d")'
+  # The RHS of this string is incompatible with zsh 5.0.2 and "eval args="
+
+  # Generate a quoted array string to assign to "eval args="
+  echo "( $(token_quote "${args[@]}") )"
 }
 
+# Expand a variable (named by $2) into a (possibly relative) pathname
 _print_path() {
-  if [ "$1" = 1 ]; then
-    eval printf '%s' "\"\$$2\"" | sed -e "s%$(pwd)/%%" | awk '{printf("%s", $0)}'
-  else
-    eval printf '%s' "\"\$$2\""
+  local pathname
+  pathname=$(eval printf '%s' "\"\${$2}\"")
+  if [ "$1" = 1 ]; then  # print relative
+    pathname=${pathname#$PWD/}  # Remove $PWD from beginning of the path
   fi
+  printf '%s' "$pathname"
 }
 
 # Execute a command with expanded args, e.g. Delete files 6 to 12: $ ge rm 6-12
 # Fails if command is a number or range (probably not worth fixing)
 exec_scmb_expand_args() {
-  eval "$(scmb_expand_args "$@" | sed -e "s/\([][|;()<>^ \"']\)/"'\\\1/g')"
+  local args
+  eval "args=$(scmb_expand_args "$@")"  # populate $args array
+  _safe_eval "${args[@]}"
 }
 
 # Clear numbered env variables
@@ -166,7 +174,12 @@ git_clear_vars() {
   local i
   for (( i=1; i<=$gs_max_changes; i++ )); do
     # Stop clearing after first empty var
-    if [[ -z "$(eval echo "\${$git_env_char$i:-}")" ]]; then break; fi
+    local env_var_i=${git_env_char}${i}
+    if [[ -z "$(eval echo "\${$env_var_i:-}")" ]]; then
+      break
+    else
+      unset $env_var_i
+    fi
   done
 }
 
@@ -175,13 +188,13 @@ git_clear_vars() {
 _git_resolve_merge_conflict() {
   if [ -n "$2" ]; then
     # Expand args and process resulting set of files.
-    IFS=$'\t'
-    for file in $(scmb_expand_args "${@:2}"); do
+    local args
+    eval "args=$(scmb_expand_args "$@")"  # populate $args array
+    for file in "${args[@]:2}"; do
       git checkout "--$1""s" "$file"   # "--$1""s" is expanded to --ours or --theirs
       git add "$file"
       echo -e "# Added $1 version of '$file'"
     done
-    IFS=$' \t\n'
     echo -e "# -- If you have finished resolving conflicts, commit the resolutions with 'git commit'"
   fi
 }
@@ -198,29 +211,62 @@ theirs(){ _git_resolve_merge_conflict "their" "$@"; }
 # * Add escaped commit command and unescaped message to bash history.
 git_commit_prompt() {
   local commit_msg
+  local saved_commit_msg
+  if [ -f "/tmp/.git_commit_message~" ]; then
+    saved_commit_msg="$(cat /tmp/.git_commit_message~)"
+    echo -e "\033[0;36mLeave blank to use saved commit message: \033[0m$saved_commit_msg"
+  fi
   if [[ $shell == "zsh" ]]; then
     vared -h -p "Commit Message: " commit_msg
   else
     read -r -e -p "Commit Message: " commit_msg
   fi
 
-  if [ -n "$commit_msg" ]; then
-    eval $@ # run any prequisite commands
-    # Add $APPEND to commit message, if given. (Used to append things like [ci skip] for Travis CI)
-    if [ -n "$APPEND" ]; then commit_msg="$commit_msg $APPEND"; fi
-    echo $commit_msg | git commit -F - | tail -n +2
-  else
-    echo -e "\033[0;31mAborting commit due to empty commit message.\033[0m"
+  if [ -z "$commit_msg" ]; then
+    if [ -n "$saved_commit_msg" ]; then
+      commit_msg="$saved_commit_msg"
+    else
+      echo -e "\033[0;31mAborting commit due to empty commit message.\033[0m"
+      return
+    fi
   fi
-  escaped=$(echo "$commit_msg" | sed -e 's/"/\\"/g' -e 's/!/"'"'"'!'"'"'"/g')
 
+  # Add $GIT_COMMIT_MSG_SUFFIX to commit message, if given.
+  # (Used to append things like [ci skip] for Travis CI)
+  if [ -n "$GIT_COMMIT_MSG_SUFFIX" ]; then
+    commit_msg="$commit_msg $GIT_COMMIT_MSG_SUFFIX"
+  fi
+
+  # Exclamation marks are really difficult to escape properly in a bash prompt.
+  # They must always be enclosed with single quotes.
+  escaped_msg=$(echo "$commit_msg" | sed -e 's/"/\\"/g' -e "s/!/\"'!'\"/g")
+  # Add command to bash history, so that if a git pre-commit hook fails,
+  # you can just press "up" and "return" to retry the commit.
   if [[ $shell == "zsh" ]]; then
-    print -s "git commit -m \"${escaped//\\/\\\\}\"" # zsh's print needs double escaping
-    print -s "$commit_msg"
+    # zsh's print needs double escaping
+    print -s "git commit -m \"${escaped_msg//\\/\\\\}\""
   else
-    echo "git commit -m \"$escaped\"" >> $HISTFILE
-    # Also add unescaped commit message, for git prompt
-    echo "$commit_msg" >> $HISTFILE
+    history -s "git commit -m \"$escaped_msg\""
+    # Need to write history to a file for tests
+    if [ -n "$SHUNIT_VERSION" ]; then history -w $HISTFILE; fi
+  fi
+
+  # Also save the commit message to a temp file in case git commit fails
+  echo "$commit_msg" > "/tmp/.git_commit_message~"
+  eval $@ # run any prequisite commands
+
+  echo "$commit_msg" | git commit -F - | tail -n +2
+
+  # Fetch the pipe status (for both bash and zsh):
+  GIT_PIPE_STATUS=("${PIPESTATUS[@]}${pipestatus[@]}")
+  if [[ $shell == "zsh" ]]; then
+    git_exit_status="${GIT_PIPE_STATUS[2]}" # zsh array indexes start at 1
+  else
+    git_exit_status="${GIT_PIPE_STATUS[1]}"
+  fi
+  if [[ "$git_exit_status" == 0 ]]; then
+    # Delete saved commit message if commit was successful
+    rm -f "/tmp/.git_commit_message~"
   fi
 }
 
@@ -229,8 +275,8 @@ git_commit_all() {
   fail_if_not_git_repo || return 1
   changes=$(git status --porcelain | wc -l | tr -d ' ')
   if [ "$changes" -gt 0 ]; then
-    if [ -n "$APPEND" ]; then
-      local appending=" | \033[0;36mappending '\033[1;36m$APPEND\033[0;36m' to commit message.\033[0m"
+    if [ -n "$GIT_COMMIT_MSG_SUFFIX" ]; then
+      local appending=" | \033[0;36mappending '\033[1;36m$GIT_COMMIT_MSG_SUFFIX\033[0;36m' to commit message.\033[0m"
     fi
     echo -e "\033[0;33mCommitting all files (\033[0;31m$changes\033[0;33m)\033[0m$appending"
     git_commit_prompt "git add --all ."

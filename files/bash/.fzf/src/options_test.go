@@ -50,7 +50,7 @@ func TestDelimiterRegexString(t *testing.T) {
 		tokens[2].text.ToString() != "---*" ||
 		tokens[3].text.ToString() != "*" ||
 		tokens[4].text.ToString() != "---" {
-		t.Errorf("%s %s %d", delim, tokens, len(tokens))
+		t.Errorf("%s %v %d", delim, tokens, len(tokens))
 	}
 }
 
@@ -71,7 +71,7 @@ func TestSplitNth(t *testing.T) {
 		if len(ranges) != 1 ||
 			ranges[0].begin != rangeEllipsis ||
 			ranges[0].end != rangeEllipsis {
-			t.Errorf("%s", ranges)
+			t.Errorf("%v", ranges)
 		}
 	}
 	{
@@ -87,7 +87,7 @@ func TestSplitNth(t *testing.T) {
 			ranges[7].begin != -2 || ranges[7].end != -2 ||
 			ranges[8].begin != 2 || ranges[8].end != -2 ||
 			ranges[9].begin != rangeEllipsis || ranges[9].end != rangeEllipsis {
-			t.Errorf("%s", ranges)
+			t.Errorf("%v", ranges)
 		}
 	}
 }
@@ -99,7 +99,7 @@ func TestIrrelevantNth(t *testing.T) {
 		parseOptions(opts, words)
 		postProcessOptions(opts)
 		if len(opts.Nth) != 0 {
-			t.Errorf("nth should be empty: %s", opts.Nth)
+			t.Errorf("nth should be empty: %v", opts.Nth)
 		}
 	}
 	for _, words := range [][]string{[]string{"--nth", "..,3", "+x"}, []string{"--nth", "3,1..", "+x"}, []string{"--nth", "..-1,1", "+x"}} {
@@ -108,7 +108,7 @@ func TestIrrelevantNth(t *testing.T) {
 			parseOptions(opts, words)
 			postProcessOptions(opts)
 			if len(opts.Nth) != 0 {
-				t.Errorf("nth should be empty: %s", opts.Nth)
+				t.Errorf("nth should be empty: %v", opts.Nth)
 			}
 		}
 		{
@@ -117,7 +117,7 @@ func TestIrrelevantNth(t *testing.T) {
 			parseOptions(opts, words)
 			postProcessOptions(opts)
 			if len(opts.Nth) != 2 {
-				t.Errorf("nth should not be empty: %s", opts.Nth)
+				t.Errorf("nth should not be empty: %v", opts.Nth)
 			}
 		}
 	}
@@ -243,9 +243,10 @@ func TestBind(t *testing.T) {
 	check(tui.CtrlA, "", actBeginningOfLine)
 	parseKeymap(keymap,
 		"ctrl-a:kill-line,ctrl-b:toggle-sort+up+down,c:page-up,alt-z:page-down,"+
-			"f1:execute(ls {})+abort,f2:execute/echo {}, {}, {}/,f3:execute[echo '({})'],f4:execute;less {};,"+
+			"f1:execute(ls {+})+abort+execute(echo {+})+select-all,f2:execute/echo {}, {}, {}/,f3:execute[echo '({})'],f4:execute;less {};,"+
 			"alt-a:execute-Multi@echo (,),[,],/,:,;,%,{}@,alt-b:execute;echo (,),[,],/,:,@,%,{};,"+
 			"x:Execute(foo+bar),X:execute/bar+baz/"+
+			",f1:+top,f1:+top"+
 			",,:abort,::accept,+:execute:++\nfoobar,Y:execute(baz)+up")
 	check(tui.CtrlA, "", actKillLine)
 	check(tui.CtrlB, "", actToggleSort, actUp, actDown)
@@ -253,7 +254,7 @@ func TestBind(t *testing.T) {
 	check(tui.AltZ+',', "", actAbort)
 	check(tui.AltZ+':', "", actAccept)
 	check(tui.AltZ, "", actPageDown)
-	check(tui.F1, "ls {}", actExecute, actAbort)
+	check(tui.F1, "ls {+}", actExecute, actAbort, actExecute, actSelectAll, actTop, actTop)
 	check(tui.F2, "echo {}, {}, {}", actExecute)
 	check(tui.F3, "echo '({})'", actExecute)
 	check(tui.F4, "less {}", actExecute)
