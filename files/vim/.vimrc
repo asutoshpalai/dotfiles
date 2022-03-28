@@ -31,7 +31,7 @@ let g:ale_completion_enabled = 1
 call plug#begin()
 
 " Plugin outside ~/.vim/plugged with post-update hook
-Plug '~/.fzf'                         " The great fuzzer
+Plug 'junegunn/fzf', { 'do': { -> fzf#install()  }  } " The great fuzzer
 Plug 'junegunn/fzf.vim'               " fzf's helpers
 Plug 'w0rp/ale'                       " Linter
 Plug 'vim-airline/vim-airline'        " Status bar
@@ -448,6 +448,19 @@ function! CLsp()
   endif
 endfunction
 
+function! PythonLsp()
+  echo "here1"
+	if executable('pyls')
+    echo "here2"
+			au User lsp_setup call lsp#register_server({
+					\ 'name': 'pyls',
+					\ 'cmd': {server_info->['pyls']},
+					\ 'whitelist': ['python'],
+					\ 'workspace_config': {'pyls': {'plugins': {'pydocstyle': {'enabled': v:true}}}}
+					\ })
+	endif
+endfunction
+
 function! GoLsp()
   if executable('gopls')
     au User lsp_setup call lsp#register_server({
@@ -484,6 +497,9 @@ autocmd FileType markdown
       \ setlocal spell |
       \ setlocal colorcolumn=80 |
       \ setlocal textwidth=80
+
+autocmd FileType python
+      \ call PythonLsp()
 
 "Transperent backgound
 hi Normal ctermbg=NONE
@@ -532,7 +548,7 @@ endfunction
 " vim-lsp configurations
 let g:lsp_signs_enabled = 1         " enable signs
 let g:lsp_diagnostics_echo_cursor = 1 " enable echo under cursor when in normal mode
-noremap <leader>d :LspPeekDefinition<cr>
+noremap <leader>d :LspDefinition<cr>
 set foldmethod=expr
   \ foldexpr=lsp#ui#vim#folding#foldexpr()
   \ foldtext=lsp#ui#vim#folding#foldtext()
