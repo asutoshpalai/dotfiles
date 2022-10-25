@@ -48,11 +48,6 @@ diffdir() {
   diff  -ENwbur $@ | vim -R -
 }
 
-gg() {
-  echo "Git goto $1"
-  cd "$(gg.sh $1)"
-}
-
 export NVM_DIR=~/.nvm
 #[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
 
@@ -87,7 +82,7 @@ shopt -s histappend
 
 # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
 HISTSIZE=1000
-HISTFILESIZE=20000
+HISTFILESIZE=200000
 
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
@@ -180,12 +175,8 @@ if ! shopt -oq posix; then
   fi
 fi
 
-if [ -f ~/.bashrc_local  ]; then
-  . ~/.bashrc_local
-fi
-
 export GOPATH=~/go
-export PATH=$PATH:~/go/bin
+export PATH=~/go/bin:$PATH
 
 # composer global install modules
 export PATH=$PATH:~/.config/composer/vendor/bin
@@ -199,7 +190,7 @@ export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 
 # Meet the sweet git helpers
 #[ -s "$HOME/.scm_breeze/scm_breeze.sh" ] && source "$HOME/.scm_breeze/scm_breeze.sh"
- eval "$(scmpuff init -s)"
+eval "$(scmpuff init -s)"
 scmpuff_cmds=(vim rm bat)
 for cmd in "${scmpuff_cmds[@]}"; do
   #echo "export SCMPUFF_${cmd}_CMD=\"$(\which $cmd)\";${cmd} () { eval \"\$(scmpuff expand -- \"\$SCMPUFF_${cmd}_CMD\"  \$@ )\"; }"
@@ -207,6 +198,9 @@ for cmd in "${scmpuff_cmds[@]}"; do
 done
 alias gc='git commit'
 alias gf='git fetch'
+alias gb='git branch'
+#alias gd='git diff --color-words="[^[:space:]]|([[:alnum:]]|UTF_8_GUARD)+"'
+alias gd='git diff'
 
 [ -f ~/.fzf.bash  ] && source ~/.fzf.bash
 
@@ -219,4 +213,37 @@ fi
 export FZF_CTRL_R_OPTS="--preview 'echo {}' --preview-window down:3:hidden:wrap --bind '?:toggle-preview' --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort' --header 'Press CTRL-Y to copy command into clipboard' --border"
 
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-source <(kubectl completion bash)
+
+macos_ramdisk() {
+  ramdisk_size=$((2048 * $1))
+  diskutil erasevolume HFS+ 'RAM Disk' `hdiutil attach -nobrowse -nomount ram://$ramdisk_size`
+}
+
+# courtesy https://dev.to/zanehannanau/bash-lazy-completion-evaluation-2a2d 
+# arg 1: command for which completion is being initialized
+# arg 2: completion function after initialization of completion.
+#       this can be found by running `complete -p <arg 1>` after running
+#       the initialization code.
+function __lazyfunc {
+  local target="$1"
+  shift
+  local fn="$1"
+  shift
+
+  if [[ -z "$(type -t $fn)" || $LAZYFUNC_FORCE_REDEFINE  ]]; then
+    eval "$fn () { unset -f $fn ; eval \"\$( $@  )\" ; $fn \$@ ;  }"
+    complete -o default -F "$fn" "$target"
+  fi
+}
+
+__lazyfunc sheepctl __start_sheepctl sheepctl completion bash
+__lazyfunc kubectl __start_kubectl kubectl completion bash
+__lazyfunc eksctl __start_eksctl eksctl completion bash
+
+if [ -f ~/.bashrc_local  ]; then
+  . ~/.bashrc_local
+fi
+
+# BEGIN_KITTY_SHELL_INTEGRATION
+if test -n "$KITTY_INSTALLATION_DIR" -a -e "$KITTY_INSTALLATION_DIR/shell-integration/bash/kitty.bash"; then source "$KITTY_INSTALLATION_DIR/shell-integration/bash/kitty.bash"; fi
+# END_KITTY_SHELL_INTEGRATION

@@ -27,31 +27,34 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => vim-plug and plugin setup
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-let g:ale_completion_enabled = 1
+"let g:ale_completion_enabled = 1
 call plug#begin()
 
 " Plugin outside ~/.vim/plugged with post-update hook
-Plug 'junegunn/fzf', { 'do': { -> fzf#install()  }  } " The great fuzzer
-Plug 'junegunn/fzf.vim'               " fzf's helpers
-Plug 'w0rp/ale'                       " Linter
-Plug 'vim-airline/vim-airline'        " Status bar
-Plug 'vim-airline/vim-airline-themes' " Airline themes
-Plug 'jiangmiao/auto-pairs'           " Pairing of brackets
-Plug 'editorconfig/editorconfig-vim'  " Switch settings based on code bases
-Plug 'mattn/emmet-vim'                " The awesome html helpers
-Plug 'scrooloose/nerdcommenter'       " Helps in commenting codes
-Plug 'airblade/vim-gitgutter'         " Marks the changed lines
-Plug 'tpope/vim-fugitive'             " Awesome git plugin
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } } " awesome fuzzing helper"
+Plug 'junegunn/fzf.vim'                             " fzf's helpers
+"Plug 'w0rp/ale'                                     " Linter
+Plug 'vim-airline/vim-airline'                      " Status bar
+Plug 'vim-airline/vim-airline-themes'               " Airline themes
+Plug 'jiangmiao/auto-pairs'                         " Pairing of brackets
+Plug 'editorconfig/editorconfig-vim'                " Switch settings based on code bases
+Plug 'mattn/emmet-vim'                              " The awesome html helpers
+Plug 'scrooloose/nerdcommenter'                     " Helps in commenting codes
+Plug 'airblade/vim-gitgutter'                       " Marks the changed lines
+Plug 'tpope/vim-fugitive'                           " Awesome git plugin
 Plug 'shumphrey/fugitive-gitlab.vim'
-Plug 'tpope/vim-surround'             " Changing the surrouding brackets/quotes
-Plug 'godlygeek/tabular'              " Fixing tabluar indentation
-Plug 'sheerun/vim-polyglot'           " Syntax plugin for a 100+ languages
+Plug 'tpope/vim-surround'                           " Changing the surrouding brackets/quotes
+Plug 'godlygeek/tabular'                            " Fixing tabluar indentation
+Plug 'sheerun/vim-polyglot'                         " Syntax plugin for a 100+ languages
 Plug 'prabirshrestha/async.vim'
 Plug 'prabirshrestha/vim-lsp'
+Plug 'mattn/vim-lsp-settings'
 Plug 'prabirshrestha/asyncomplete.vim'
 Plug 'prabirshrestha/asyncomplete-lsp.vim'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries'  }
+Plug 'rust-lang/rust.vim'
 Plug 'majutsushi/tagbar'
+"Plug 'bufbuild/vim-buf'
 Plug 'uber/prototool', { 'rtp':'vim/prototool'  }
 
 if has('nvim')
@@ -148,8 +151,8 @@ set tm=500
 " Enable syntax highlighting
 syntax enable
 
-set background=dark
-colorscheme torte
+"set background=dark
+colorscheme Mustang
 
 " Set extra options when running in GUI mode
 if has("gui_running")
@@ -345,6 +348,8 @@ map <leader>sp [s
 map <leader>sa zg
 map <leader>s? z=
 
+hi clear SpellBad
+hi SpellBad cterm=underline ctermfg=red
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Misc
@@ -358,7 +363,8 @@ map <leader>q :e ~/buffer<cr>
 " Toggle paste mode on and off
 map <leader>pp :setlocal paste!<cr>
 
-
+" Vertical split in right
+set splitright
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Helper functions
@@ -465,10 +471,73 @@ function! GoLsp()
   if executable('gopls')
     au User lsp_setup call lsp#register_server({
           \ 'name': 'gopls',
-          \ 'cmd': {server_info->['gopls'] },
+          \ 'cmd': {server_info->['gopls', '-remote=auto'] },
           \ 'whitelist': ['go'],
           \ })
     autocmd BufWritePre *.go LspDocumentFormatSync
+  endif
+endfunction
+
+function! JsLsp()
+  if executable('typescript-language-server')
+    au User lsp_setup call lsp#register_server({
+          \ 'name': 'javascript support using typescript-language-server',
+          \ 'cmd': { server_info->[&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
+          \ 'root_uri': { server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_directory(lsp#utils#get_buffer_path(), '.git/..')) },
+          \ 'whitelist': ['javascript', 'javascript.jsx', 'javascriptreact']
+          \ })
+    autocmd BufWritePre *.js LspDocumentFormatSync
+  endif
+endfunction
+
+function! RustLsp()
+  if executable('rust-analyzer')
+    au User lsp_setup call lsp#register_server({
+          \   'name': 'Rust Language Server',
+          \   'cmd': {server_info->['rust-analyzer']},
+          \   'whitelist': ['rust'],
+          \ })
+  endif
+endfunction
+
+function! ProtoLsp()
+  if executable('prototool-lint')
+    au User lsp_setup call lsp#register_server({
+          \ 'name': 'prototool-lint',
+          \ 'cmd': {server_info->['prototool-lint'] },
+          \ 'whitelist': ['proto'],
+          \ })
+  endif
+endfunction
+
+function! PythonLsp()
+  if executable('pyls')
+    au User lsp_setup call lsp#register_server({
+          \ 'name': 'pyls',
+          \ 'cmd': {server_info->['pyls']},
+          \ 'whitelist': ['python'],
+          \ 'workspace_config': {'pyls': {'plugins': {'pyls_mypy': {'enabled': v:true, "live_mode": v:false}}}},
+          \ })
+  endif
+endfunction
+
+function! YAMLLsp()
+  if executable('yaml-language-server')
+		autocmd User lsp_setup call lsp#register_server({
+       \ 'name': 'yaml-language-server',
+       \ 'cmd': {server_info->['yaml-language-server', '--stdio']},
+       \ 'whitelist': ['yaml', 'yaml.ansible'],
+       \ 'workspace_config': {
+       \   'yaml': {
+       \     'validate': v:true,
+       \     'hover': v:true,
+       \     'completion': v:true,
+       \     'customTags': [],
+       \     'schemas': { 'kubernetes': '/*.yaml'},
+       \     'schemaStore': { 'enable': v:true },
+       \   }
+       \ }
+       \ })
   endif
 endfunction
 
@@ -485,11 +554,13 @@ autocmd FileType c,cpp
       \ call CLsp()
 
 autocmd FileType go
-      \ map <leader>d :GoDef<cr>|
-      \ map <leader>D :GoDecls<cr>|
-      \ map <leader>r :GoReferrers<cr>|
-      \ map <leader>f :GoFillStruct<cr>|
-      \ map <leader>i :GoInfo<cr>|
+      \ map <leader>d  :GoDef<cr>|
+      \ map <leader>D  :GoDecls<cr>|
+      \ map <leader>r  :GoReferrers<cr>|
+      \ map <leader>f  :GoFillStruct<cr>|
+      \ map <leader>i  :GoInfo<cr>|
+      \ map <leader>e  :GoDiagnostics<cr>|
+      \ map <leader>td :GoDefType<cr>|
       \ set foldmethod=syntax
       "\ call GoLsp()
 
@@ -500,6 +571,25 @@ autocmd FileType markdown
 
 autocmd FileType python
       \ call PythonLsp()
+
+autocmd FileType proto
+      \ setlocal tabstop=4 |
+      \ setlocal shiftwidth=4 |
+      \ call ProtoLsp()
+
+autocmd FileType javascript
+      \ call JsLsp()
+
+"autocmd FileType python
+      "\ call PythonLsp()
+
+autocmd FileType rust 
+      \ call deoplete#custom#buffer_option('auto_complete', v:false) |
+      \ call RustLsp()
+
+autocmd FileType yaml
+      \ setlocal omnifunc=lsp#complete |
+      \ call YAMLLsp()
 
 "Transperent backgound
 hi Normal ctermbg=NONE
@@ -512,7 +602,8 @@ let g:airline#extensions#tabline#enabled = 1
 "set listchars=tab:>-
 
 map <C-p> :Files<CR>
-
+map <C-l> :Buffers<CR>
+map <C-k> :!tmux send -t 1 q Up Enter<CR><CR>
 
 " Likewise, Files command with preview window
 command! -bang -nargs=? -complete=dir Files
@@ -520,7 +611,7 @@ command! -bang -nargs=? -complete=dir Files
 
 let g:ale_lint_delay = 10000
 let g:ale_set_balloons=1
-let g:ale_linters = {'c': [], 'cpp': [], 'go': [], 'proto': ['prototool-lint']} " Disabling for C/C++ in favour of vim-lsp
+let g:ale_linters = {'c': [], 'cpp': [], 'go': [], 'proto': ['prototool-lint',], 'javascript': []} " Disabling for C/C++ in favour of vim-lsp
 
 " Highlight all instances of word under cursor, when idle.
 " Useful when studying strange source code.
@@ -553,8 +644,10 @@ set foldmethod=expr
   \ foldexpr=lsp#ui#vim#folding#foldexpr()
   \ foldtext=lsp#ui#vim#folding#foldtext()
 set foldlevel=99 " Not to fold the whole file by default
-"let g:lsp_log_verbose = 1
-"let g:lsp_log_file = expand('~/vim-lsp.log')
+let g:lsp_log_verbose = 1
+let g:lsp_log_file = expand('~/vim-lsp.log')
+map <C-a> <Plug>(lsp-code-action)
+map <C-s> <Plug>(lsp-code-lens)
 
 " asyncomplete.vim configs
 inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
@@ -570,10 +663,12 @@ let g:netrw_winsize = 25
 map <leader>b :Vexplore!<cr>
 
 "deoplete
-let g:deoplete#enable_at_startup = 1
+let g:deoplete#enable_at_startup = 0
 call deoplete#custom#option('omni_patterns', { 'go': '[^. *\t]\.\w*'  })
-let g:deoplete#auto_complete_delay = 100
-let g:deoplete#auto_refresh_delay = 0
+call deoplete#custom#option({
+    \ 'auto_complete_delay': 1000,
+    \ 'auto_refresh_delay': 1000,
+    \})
 
 nmap <C-x> :TagbarToggle<CR>
 let g:tagbar_autofocus = 1
@@ -584,7 +679,71 @@ if &term =~ '^screen'
   " tmux knows the extended mouse mode
   set ttymouse=sgr
 endif
+if &term =~ '256color'
+  " Enable true (24-bit) colors instead of (8-bit) 256 colors.
+  " :h true-color
+  if has('termguicolors')
+    "let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+    "let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+    "set termguicolors
+  endif
+endif
 
-let g:go_metalinter_autosave = 0
-let g:go_metalinter_autosave_enabled=['golint', 'govet', 'typecheck']
-let g:go_metalinter_command='golangci-lint'
+" vim-fugitive
+let g:fugitive_gitlab_domains = ['https://gitlab.eng.vmware.com']
+
+let g:go_metalinter_autosave = 1
+"let g:go_metalinter_command = "golangci-lint"
+"let g:go_diagnostics_enabled = 1
+"let g:go_metalinter_autosave_enabled=['golint', 'govet', 'typecheck']
+"let g:go_metalinter_command='golangci-lint'
+"let g:go_auto_type_info = 1
+let g:go_imports_autosave = 0
+let g:go_fillstruct_mode = 'fillstruct'
+let g:go_list_type_commands = {"GoMetaLinterAutoSave": "quickfix"}
+let g:go_jump_to_error = 1
+
+let g:asyncomplete_auto_popup = 1
+let g:asyncomplete_popup_delay = 500
+
+let g:lsp_settings = {
+  \  'gopls': {'args': ['-remote=auto']},
+  \}
+
+function! GoDisassFunc()
+   let l:line = search('func \?\(([a-z]\+ \?\*\?\([a-z]\+\))\)\? \(\w\+\)(', 'bcnW')
+   if l:line == 0 
+     echo "not in a method"
+     return
+   endif
+
+   let l:mats = matchlist(getline(l:line), 'func \?\(([a-z]\+ \?\*\?\([a-z]\+\))\)\? \(\w\+\)(')
+   let l:sig = mats[3]
+   if len(l:mats[2]) > 0
+     let l:sig = mats[2] . ".?." . l:sig 
+   endif
+   echo "processing method " . l:sig
+   let l:root = go#util#ModuleRoot()
+   let l:cmds = globpath(go#util#ModuleRoot() . "/cmd", "*", 1, 1)
+   for l:cmd in cmds
+     echo l:cmd
+     call system("go build -o tmp.vim.out " . l:cmd )
+     let l:asm = system("go tool objdump -s " . l:sig . " ./tmp.vim.out")
+     if len(l:asm) == 0 
+       continue
+     endif
+
+     let l:filename = expand("%:t")
+     let l:bname = '\[Disassembly - ' . l:filename . '\]'
+     " create a new buffer
+     exec 'topleft vsplit' . l:bname
+     " clear the buffer
+     silent! %d _
+     put =l:asm
+     setlocal nomodified nomodifiable filetype=asm buftype=nofile bufhidden=wipe
+     return
+   endfor
+   echo "couldn't method in any of the compiled binary"
+endfunction
+
+command! GoDisass call GoDisassFunc()
